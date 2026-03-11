@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Minigames</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ตัวแปรจัดการ Theme สไตล์ Modern Gradient --- */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --text-color: #f8fafc;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #3b82f6; --primary-hover: #2563eb;
+            --danger: #ef4444; --success: #10b981;
+            --cell-bg: rgba(51, 65, 85, 0.9); --cell-hover: rgba(71, 85, 105, 0.9);
+            --revealed-bg: #1e293b;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --board-border: #475569;
+        }
+        [data-theme="light"] {
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --text-color: #1e293b;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --primary: #2563eb; --primary-hover: #1d4ed8;
+            --danger: #dc2626; --success: #059669;
+            --cell-bg: rgba(203, 213, 225, 0.9); --cell-hover: rgba(148, 163, 184, 0.9);
+            --revealed-bg: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --board-border: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; transition: background 0.4s, color 0.4s; }
+        body { background: var(--bg-gradient); background-attachment: fixed; color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; flex-direction: column;}
+        
+        .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px 0 var(--shadow); }
+
+        /* Top Controls & Audio */
+        .top-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 50; align-items: flex-start;}
+        select, .btn-control { background: var(--glass-bg); backdrop-filter: blur(5px); border: 1px solid var(--glass-border); color: var(--text-color); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 500; outline: none; box-shadow: 0 4px 6px var(--shadow);}
+        
+        .audio-menu { position: relative; }
+        .audio-panel { display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; padding: 15px; border-radius: 12px; width: 240px; flex-direction: column; gap: 12px; }
+        .audio-panel.active { display: flex; animation: popIn 0.2s forwards; }
+        .audio-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+        input[type="range"] { width: 80px; accent-color: var(--primary); }
+        .toggle-switch { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .reset-btn { width: 100%; padding: 8px; background: var(--danger); color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 5px; font-weight: 500;}
+
+        /* Views */
+        .view { display: none; flex-direction: column; align-items: center; animation: fadeInSlideUp 0.4s ease-out forwards; width: 100%; max-width: 1000px; padding: 20px; margin-top: 40px;}
+        .view.active { display: flex; }
+        @keyframes fadeInSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+        .shake-animation { animation: shake 0.4s ease-in-out; }
+
+        /* UI General */
+        .title-container { padding: 20px 40px; border-radius: 20px; margin-bottom: 2rem; text-align: center; }
+        h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; text-shadow: 0 4px 10px rgba(0,0,0,0.2); letter-spacing: 1px;}
+        h2.subtitle { font-size: 2rem; margin-bottom: 1.5rem; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        button.action-btn { background-color: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 6px var(--shadow); transition: all 0.2s;}
+        button.action-btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 12px var(--shadow);}
+        .btn-back { background-color: transparent; border: 2px solid var(--text-color); color: var(--text-color); }
+        .btn-back:hover { background-color: var(--text-color); color: var(--bg-color); }
+        .controls-row { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: center;}
+
+        /* Menu */
+        .menu-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; width: 100%; max-width: 800px; justify-items: center;}
+        .card { padding: 2rem; border-radius: 20px; text-align: center; cursor: pointer; width: 100%; max-width: 220px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .card:hover { transform: translateY(-10px) scale(1.05); border: 1px solid var(--primary); box-shadow: 0 15px 25px var(--shadow); }
+        .card-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+        /* ===================== TIC TAC TOE ===================== */
+        .board-ttt { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 12px; padding: 16px; border-radius: 20px; margin-bottom: 1rem; justify-content: center;}
+        .cell-ttt { width: 100px; height: 100px; background: var(--cell-bg); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 4rem; font-weight: bold; cursor: pointer; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);}
+        .cell-ttt:hover:not(.x):not(.o) { background: var(--cell-hover); }
+        .cell-ttt.x { color: var(--danger); animation: popIn 0.2s forwards; }
+        .cell-ttt.o { color: var(--primary); animation: popIn 0.2s forwards; }
+        .score-board { display: flex; gap: 2rem; margin-bottom: 1rem; padding: 10px 20px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; justify-content: center;}
+
+        /* ===================== MINESWEEPER ===================== */
+        .ms-wrapper { width: 100%; max-width: 100vw; overflow-x: auto; padding-bottom: 10px; text-align: center; }
+        .ms-container { padding: 20px; border-radius: 20px; display: inline-flex; flex-direction: column; align-items: center; position: relative;}
+        
+        .ms-header { display: flex; justify-content: space-between; align-items: center; width: 100%; background: rgba(0,0,0,0.5); padding: 12px; border: 3px inset var(--board-border); margin-bottom: 15px; border-radius: 8px; min-width: 300px; }
+        .ms-counter { background: #000; color: #ef4444; font-family: 'Courier New', monospace; font-size: 2.2rem; padding: 2px 8px; min-width: 80px; text-align: center; border-radius: 4px; box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.2);}
+        .ms-face { font-size: 2.2rem; cursor: pointer; background: var(--cell-bg); border: 3px outset var(--board-border); border-radius: 8px; padding: 2px 12px; user-select: none; transition: transform 0.1s;}
+        .ms-face:active { border-style: inset; transform: scale(0.95);}
+        
+        /* ---------------- โหมดไฟฉาย (Flashlight Mode) ---------------- */
+        .board-ms { display: grid; grid-gap: 2px; border: 4px inset var(--board-border); background: var(--board-border); touch-action: manipulation; position: relative;}
+        .board-ms.flashlight::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #000; /* ดำสนิท */
+            pointer-events: none; /* ให้คลิกทะลุได้ */
+            z-index: 10;
+            /* สร้างวงกลมโปร่งแสงตรงเมาส์ */
+            mask-image: radial-gradient(circle 80px at var(--x, -100px) var(--y, -100px), transparent 0%, black 100%);
+            -webkit-mask-image: radial-gradient(circle 80px at var(--x, -100px) var(--y, -100px), transparent 0%, black 100%);
+        }
+        /* ----------------------------------------------------------- */
+
+        .cell-ms { width: 32px; height: 32px; background: var(--cell-bg); border: 3px outset var(--board-border); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.1rem; cursor: pointer; user-select: none; transition: filter 0.2s;}
+        .cell-ms:active:not(.revealed) { border-style: inset; }
+        .cell-ms:hover:not(.revealed) { filter: brightness(1.2); }
+        .cell-ms.revealed { background: var(--revealed-bg); border: 1px solid rgba(0,0,0,0.2); box-shadow: inset 0 0 5px rgba(0,0,0,0.1); cursor: default; }
+        .cell-ms.mine { background-color: var(--danger); border-color: var(--danger);}
+        
+        .inventory { display: flex; gap: 12px; margin-top: 10px; min-height: 60px; width: 100%; border: 2px dashed rgba(255,255,255,0.3); padding: 12px; border-radius: 12px; justify-content: center; align-items: center; background: rgba(0,0,0,0.1); flex-wrap: wrap;}
+        .item-slot { width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; cursor: pointer; animation: popIn 0.3s; box-shadow: 0 4px 8px var(--shadow); border: 2px solid rgba(255,255,255,0.2); transition: all 0.2s ease;}
+        .item-slot:active { transform: scale(0.9);}
+        .item-slot.selected {
+            border: 2px solid var(--success);
+            box-shadow: 0 0 15px var(--success), inset 0 0 10px rgba(16, 185, 129, 0.5);
+            transform: scale(1.1);
+            animation: pulseLight 1.5s infinite;
+        }
+        @keyframes pulseLight {
+            0% { box-shadow: 0 0 10px var(--success); }
+            50% { box-shadow: 0 0 20px var(--success), inset 0 0 10px rgba(16, 185, 129, 0.5); }
+            100% { box-shadow: 0 0 10px var(--success); }
+        }
+
+        .item-tooltip { font-size: 0.8rem; color: #fff; position: absolute; bottom: -20px; white-space: nowrap; display: none; background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 4px; z-index: 10;}
+        .item-slot:hover .item-tooltip { display: block; }
+        .num-1 { color: #3b82f6; text-shadow: 0 0 2px rgba(59, 130, 246, 0.4); } .num-2 { color: #10b981; text-shadow: 0 0 2px rgba(16, 185, 129, 0.4);} .num-3 { color: #ef4444; text-shadow: 0 0 2px rgba(239, 68, 68, 0.4);} .num-4 { color: #8b5cf6; } .num-5 { color: #f59e0b; } .num-6 { color: #06b6d4; }
+
+        /* ===================== SNAKE ===================== */
+        .board-snake { display: grid; grid-template-columns: repeat(15, minmax(18px, 25px)); grid-gap: 1px; background: rgba(0,0,0,0.2); border: 3px solid var(--board-border); padding: 5px; border-radius: 10px;}
+        .cell-snake { aspect-ratio: 1; background: var(--cell-bg); border-radius: 2px; }
+        .cell-snake.snake-body { background: var(--success); box-shadow: 0 0 5px var(--success); }
+        .cell-snake.snake-head { background: #059669; border-radius: 5px; }
+        .cell-snake.food { background: var(--danger); border-radius: 50%; animation: popIn 0.3s; }
+        .mobile-dpad { display: none; grid-template-columns: repeat(3, 60px); grid-gap: 5px; margin-top: 15px; }
+        .dpad-btn { width: 60px; height: 60px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); font-size: 1.8rem; border-radius: 12px; display: flex; justify-content: center; align-items: center; user-select: none; cursor: pointer;}
+        .dpad-btn:active { background: var(--primary); }
+        
+        /* ===================== MEMORY MATCH ===================== */
+        .board-memory { display: grid; grid-template-columns: repeat(4, minmax(60px, 90px)); grid-gap: 12px; padding: 20px; border-radius: 16px;}
+        .card-mem { aspect-ratio: 1; perspective: 1000px; cursor: pointer; }
+        .card-inner { width: 100%; height: 100%; transition: transform 0.4s; transform-style: preserve-3d; position: relative; }
+        .card-mem.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: clamp(2rem, 6vw, 3rem); box-shadow: 0 4px 6px var(--shadow); }
+        .card-front { background: var(--cell-bg); border: 2px solid var(--glass-border); }
+        .card-back { background: var(--revealed-bg); transform: rotateY(180deg); border: 2px solid var(--primary); }
+        
+        /* แก้บัค opacity: เปลี่ยนไปเน้นสีกรอบด้านหลังแทนให้ไม่บัค 3D */
+        .card-mem.matched .card-back { border: 3px solid var(--success); box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.4); }
+
+        /* Game Over Overlay (ระบบเบลอพื้นหลังเฟดดำ) */
+        #game-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        #game-overlay.show { opacity: 1; pointer-events: auto; }
+        .overlay-content { text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1001; background: var(--glass-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border);}
+        .overlay-title { font-size: 3rem; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;}
+        .win-text { color: var(--success); text-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
+        .lose-text { color: var(--danger); text-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        
+        /* สไตล์หน้าต่างสถิติ Minesweeper */
+        .stats-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; font-size: 1.2rem; }
+        .stat-item { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; gap: 20px;}
+
+        /* เอฟเฟกต์พลุ */
+        #fireworks-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1000; }
+        .firework-particle { position: absolute; font-size: 2rem; opacity: 0; }
+        @keyframes shootUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 1; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        @media (max-width: 600px) {
+            .mobile-dpad { display: grid; }
+            .top-controls { top: 5px; right: 5px; }
+            .view { margin-top: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-overlay">
+        <div id="fireworks-container"></div>
+        <div class="overlay-content glass">
+            <div class="overlay-title" id="overlay-msg"></div>
+            
+            <div id="ms-stats" class="stats-container" style="display: none;">
+                <div class="stat-item"><span data-i18n="stat_time">เวลาที่ใช้:</span> <strong id="stat-time-val">0</strong></div>
+                <div class="stat-item"><span data-i18n="stat_revealed">เปิดช่อง:</span> <strong id="stat-revealed-val">0</strong></div>
+            </div>
+
+            <button class="action-btn" onclick="retryCurrentGame()" data-i18n="btn_play_again" style="font-size: 1.5rem; padding: 15px 30px;">เล่นอีกครั้ง</button>
+            <br><br>
+            <button class="btn-back action-btn" onclick="hideOverlay(); switchView('menu-view');" data-i18n="btn_back">กลับหน้าแรก</button>
+        </div>
+    </div>
+
+    <div class="top-controls">
+        <select id="langSelect" class="glass" onchange="changeLanguage()">
+            <option value="th">🇹🇭 ไทย</option>
+            <option value="en">🇬🇧 EN</option>
+        </select>
+        <button class="btn-control glass" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        
+        <div class="audio-menu">
+            <button class="btn-control glass" onclick="toggleAudioPanel()">⚙️ เสียง</button>
+            <div class="audio-panel glass" id="audioPanel">
+                <div class="audio-row">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="bgmToggle" onchange="updateAudioSettings()"> 🎵 เพลง
+                    </label>
+                    <input type="range" id="bgmVol" min="0" max="1" step="0.1" value="0.2" oninput="updateAudioSettings()">
+                </div>
+                <div class="audio-row">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sfxToggle" checked onchange="updateAudioSettings()"> 🔊 เอฟเฟกต์
+                    </label>
+                    <input type="range" id="sfxVol" min="0" max="1" step="0.1" value="0.5" oninput="updateAudioSettings()">
+                </div>
+                <hr style="border-color: rgba(255,255,255,0.1); width: 100%;">
+                <button class="reset-btn" onclick="confirmResetData()" data-i18n="btn_reset_data">🗑️ ล้างข้อมูลเซฟ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-view" class="view active">
+        <div class="title-container glass">
+            <h1 data-i18n="title">Arcade Minigames</h1>
+            <p style="font-size: 1.2rem; opacity: 0.8;" data-i18n="subtitle">รวมมินิเกมสุดคลาสสิก</p>
+        </div>
+        <div class="menu-cards">
+            <div class="card glass" onclick="switchView('minesweeper-view'); initMS(); playSound('click');">
+                <div class="card-icon">💣</div>
+                <h2 data-i18n="ms_title">Minesweeper</h2>
+            </div>
+            <div class="card glass" onclick="switchView('tictactoe-view'); initTTT(); playSound('click');">
+                <div class="card-icon">❌⭕</div>
+                <h2 data-i18n="ttt_title">Tic Tac Toe</h2>
+            </div>
+            <div class="card glass" onclick="switchView('snake-view'); initSnake(); playSound('click');">
+                <div class="card-icon">🐍</div>
+                <h2 data-i18n="snake_title">Snake</h2>
+            </div>
+            <div class="card glass" onclick="switchView('memory-view'); initMemory(); playSound('click');">
+                <div class="card-icon">🎴</div>
+                <h2 data-i18n="memory_title">Memory Match</h2>
+            </div>
+        </div>
+    </div>
+
+    <div id="tictactoe-view" class="view">
+        <h2 class="subtitle" data-i18n="ttt_title">Tic Tac Toe</h2>
+        <div class="controls-row">
+            <select id="ttt-mode" class="glass" onchange="resetTTTScore(); initTTT();">
+                <option value="pvp" data-i18n="ttt_pvp">ผู้เล่น vs ผู้เล่น</option>
+                <option value="bot_easy" data-i18n="ttt_bot_easy">บอท (ง่าย)</option>
+                <option value="bot_medium" data-i18n="ttt_bot_med">บอท (ปานกลาง)</option>
+                <option value="bot_hard" data-i18n="ttt_bot_hard">บอท (ยาก)</option>
+                <option value="bot_impossible" data-i18n="ttt_bot_imp">บอท (โคตรยาก)</option>
+            </select>
+        </div>
+        <div class="score-board glass">
+            <div><span data-i18n="score_x">X</span>: <span id="scoreX" style="color:var(--danger)">0</span></div>
+            <div><span data-i18n="score_draw">เสมอ</span>: <span id="scoreDraw">0</span></div>
+            <div><span data-i18n="score_o">O</span>: <span id="scoreO" style="color:var(--primary)">0</span></div>
+        </div>
+        <div id="ttt-status" style="font-size: 1.4rem; margin-bottom: 15px; font-weight: bold; height: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+        <div class="board-ttt glass" id="ttt-board"></div>
+        <div class="controls-row">
+            <button class="action-btn" onclick="initTTT(); playSound('click');" data-i18n="btn_restart">เริ่มใหม่</button>
+            <button class="action-btn btn-back" onclick="switchView('menu-view'); playSound('click');" data-i18n="btn_back">กลับหน้าแรก</button>
+        </div>
+    </div>
+
+    <div id="minesweeper-view" class="view">
+        <h2 class="subtitle" data-i18n="ms_title">Minesweeper</h2>
+        <div class="controls-row">
+            <select id="ms-difficulty" class="glass" onchange="initMS()">
+                <option value="easy" data-i18n="ms_diff_easy">ง่าย (9x9)</option>
+                <option value="medium" data-i18n="ms_diff_med">ปานกลาง (16x16)</option>
+                <option value="hard" data-i18n="ms_diff_hard">ยาก (30x16)</option>
+            </select>
+            <select id="ms-mode" class="glass" onchange="initMS()">
+                <option value="normal" data-i18n="ms_mode_normal">โหมด: ปกติ</option>
+                <option value="time" data-i18n="ms_mode_time">โหมด: จับเวลา (3 นาที)</option>
+                <option value="item" data-i18n="ms_mode_item">โหมด: มีไอเทมซ่อนอยู่</option>
+                <option value="flashlight" data-i18n="ms_mode_flash">โหมด: ไฟฉาย 🔦</option>
+            </select>
+        </div>
+        
+        <div class="ms-wrapper">
+            <div class="ms-container glass">
+                <div class="ms-header">
+                    <div class="ms-counter" id="ms-flag-count">000</div>
+                    <div class="ms-face" id="ms-face" onclick="initMS(); playSound('click');">🙂</div>
+                    <div class="ms-counter" id="ms-timer">000</div>
+                </div>
+                <div class="board-ms" id="ms-board" oncontextmenu="return false;"></div>
+                
+                <div id="inventory-container" style="display: none; width: 100%; text-align: center; margin-top: 20px;">
+                    <div style="font-size: 1rem; font-weight: 500; margin-bottom: 5px;" data-i18n="ms_inventory">กระเป๋าไอเทม (กดไอเทมเพื่อใช้งาน)</div>
+                    <div class="inventory" id="ms-inventory"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-row" style="margin-top: 20px;">
+            <button class="action-btn btn-back" onclick="switchView('menu-view'); playSound('click');" data-i18n="btn_back">กลับหน้าแรก</button>
+        </div>
+    </div>
+
+    <div id="snake-view" class="view">
+        <h2 class="subtitle" data-i18n="snake_title">Snake</h2>
+        <div style="margin-bottom: 10px; font-size: 1.5rem; font-weight:bold;">Score: <span id="snake-score" style="color:var(--success);">0</span></div>
+        <div class="board-snake glass" id="snake-board"></div>
+        
+        <div class="mobile-dpad">
+            <div></div><div class="dpad-btn" onclick="changeSnakeDir('UP')">⬆️</div><div></div>
+            <div class="dpad-btn" onclick="changeSnakeDir('LEFT')">⬅️</div>
+            <div class="dpad-btn" onclick="changeSnakeDir('DOWN')">⬇️</div>
+            <div class="dpad-btn" onclick="changeSnakeDir('RIGHT')">➡️</div>
+        </div>
+
+        <div class="controls-row" style="margin-top: 20px;">
+            <button class="action-btn" onclick="initSnake()" data-i18n="btn_restart">เริ่มใหม่</button>
+            <button class="action-btn btn-back" onclick="switchView('menu-view')" data-i18n="btn_back">กลับหน้าแรก</button>
+        </div>
+    </div>
+
+    <div id="memory-view" class="view">
+        <h2 class="subtitle" data-i18n="memory_title">Memory Match</h2>
+        <p style="margin-bottom:10px; font-size:1.1rem;" data-i18n="memory_desc">จับคู่สิ่งของให้ครบ!</p>
+        <div class="board-memory glass" id="memory-board"></div>
+        <div class="controls-row" style="margin-top: 20px;">
+            <button class="action-btn" onclick="initMemory()" data-i18n="btn_restart">เริ่มใหม่</button>
+            <button class="action-btn btn-back" onclick="switchView('menu-view')" data-i18n="btn_back">กลับหน้าแรก</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 0. System: State, Local Storage & Translation
+        // ==========================================
+        let currentView = 'menu-view';
+        let state = {
+            lang: 'th', theme: 'dark', bgm: false, sfx: true, bgmVol: 0.2, sfxVol: 0.5,
+            tttScores: { X: 0, O: 0, Draw: 0 }
+        };
+
+        const i18n = {
+            th: { 
+                title: "Arcade Minigames", subtitle: "รวมมินิเกมสุดคลาสสิก", ms_title: "Minesweeper", ttt_title: "Tic Tac Toe", snake_title: "เกมงู (Snake)", memory_title: "เกมจับคู่ (Memory)", 
+                btn_restart: "เริ่มกระดานใหม่", btn_back: "กลับหน้าแรก", btn_play_again: "เล่นอีกครั้ง", btn_reset_data: "🗑️ ล้างข้อมูลเซฟ",
+                ttt_pvp: "ผู้เล่น vs ผู้เล่น", ttt_bot_easy: "บอท (ง่าย)", ttt_bot_med: "บอท (ปานกลาง)", ttt_bot_hard: "บอท (ยาก)", ttt_bot_imp: "บอท (โคตรยาก)", score_x: "ผู้เล่น X", score_o: "ผู้เล่น O", score_draw: "เสมอ", 
+                ms_diff_easy: "ระดับ: ง่าย (9x9)", ms_diff_med: "ระดับ: ปานกลาง (16x16)", ms_diff_hard: "ระดับ: ยาก (30x16)", 
+                ms_mode_normal: "โหมด: ปกติ", ms_mode_time: "โหมด: จับเวลา (3 นาที)", ms_mode_item: "โหมด: มีไอเทมซ่อนอยู่", ms_mode_flash: "โหมด: ไฟฉาย 🔦", ms_inventory: "กระเป๋าไอเทม (กดไอเทมเพื่อใช้งาน)",
+                memory_desc: "จับคู่ไอเทมให้ครบ!", msg_win: "คุณชนะแล้ว!", msg_lose: "คุณแพ้แล้ว!", 
+                stat_time: "เวลาที่ใช้:", stat_revealed: "เปิดช่องไป:" 
+            },
+            en: { 
+                title: "Arcade Minigames", subtitle: "Classic Minigames", ms_title: "Minesweeper", ttt_title: "Tic Tac Toe", snake_title: "Snake Game", memory_title: "Memory Match", 
+                btn_restart: "Restart Game", btn_back: "Back to Menu", btn_play_again: "Play Again", btn_reset_data: "🗑️ Reset Save",
+                ttt_pvp: "Player vs Player", ttt_bot_easy: "Bot (Easy)", ttt_bot_med: "Bot (Medium)", ttt_bot_hard: "Bot (Hard)", ttt_bot_imp: "Bot (Impossible)", score_x: "Player X", score_o: "Player O", score_draw: "Draw", 
+                ms_diff_easy: "Level: Easy (9x9)", ms_diff_med: "Level: Medium (16x16)", ms_diff_hard: "Level: Hard (30x16)", 
+                ms_mode_normal: "Mode: Normal", ms_mode_time: "Mode: Time Attack (3 min)", ms_mode_item: "Mode: Items Hidden", ms_mode_flash: "Mode: Flashlight 🔦", ms_inventory: "Inventory (Tap item to Use)",
+                memory_desc: "Match the items!", msg_win: "You Win!", msg_lose: "You Lose!", 
+                stat_time: "Time Used:", stat_revealed: "Cells Revealed:" 
+            }
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem('arcadeSaveDataV2');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state = { ...state, ...parsed };
+            }
+            document.getElementById('langSelect').value = state.lang;
+            document.documentElement.setAttribute('data-theme', state.theme);
+            document.getElementById('themeBtn').innerText = state.theme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('bgmToggle').checked = state.bgm;
+            document.getElementById('sfxToggle').checked = state.sfx;
+            document.getElementById('bgmVol').value = state.bgmVol;
+            document.getElementById('sfxVol').value = state.sfxVol;
+            
+            scores.X = state.tttScores.X;
+            scores.O = state.tttScores.O;
+            scores.Draw = state.tttScores.Draw;
+            updateScoreUI();
+            changeLanguage();
+        }
+
+        function saveState() {
+            state.tttScores.X = scores.X;
+            state.tttScores.O = scores.O;
+            state.tttScores.Draw = scores.Draw;
+            localStorage.setItem('arcadeSaveDataV2', JSON.stringify(state));
+        }
+
+        function confirmResetData() {
+            if (confirm(state.lang === 'th' ? "ต้องการล้างข้อมูลคะแนนและการตั้งค่าทั้งหมดใช่หรือไม่?" : "Reset all scores and settings?")) {
+                localStorage.removeItem('arcadeSaveDataV2');
+                location.reload();
+            }
+        }
+
+        function changeLanguage() {
+            state.lang = document.getElementById('langSelect').value;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[state.lang][key]) el.innerText = i18n[state.lang][key];
+            });
+            updateTTTStatus();
+            renderInventory(); 
+            saveState();
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', state.theme);
+            document.getElementById('themeBtn').innerText = state.theme === 'dark' ? '🌙' : '☀️';
+            playSound('click');
+            saveState();
+        }
+
+        function switchView(viewId) {
+            playSound('click');
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            currentView = viewId;
+            clearInterval(timerInterval); clearInterval(snakeInterval);
+        }
+
+        window.onload = loadData;
+
+        // ==========================================
+        // Audio & Game Over Overlay Logic
+        // ==========================================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let isBgmPlaying = false, bgmInterval;
+        const melody = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63, 196.00, 349.23, 440.00, 523.25, 698.46, 523.25, 440.00, 349.23, 261.63];
+        let noteIndex = 0;
+
+        function toggleAudioPanel() { document.getElementById('audioPanel').classList.toggle('active'); }
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function updateAudioSettings() {
+            state.sfx = document.getElementById('sfxToggle').checked;
+            state.sfxVol = parseFloat(document.getElementById('sfxVol').value);
+            state.bgm = document.getElementById('bgmToggle').checked;
+            state.bgmVol = parseFloat(document.getElementById('bgmVol').value);
+            saveState();
+            
+            if (state.bgm && !isBgmPlaying) { initAudio(); startBGM(); } 
+            else if (!state.bgm) { stopBGM(); }
+        }
+
+        function startBGM() {
+            if (isBgmPlaying || !state.bgm) return;
+            isBgmPlaying = true; initAudio();
+            bgmInterval = setInterval(() => {
+                if (!state.bgm) { stopBGM(); return; }
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = 'square'; osc.frequency.value = melody[noteIndex]; noteIndex = (noteIndex + 1) % melody.length;
+                gain.gain.setValueAtTime(state.bgmVol * 0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.2);
+            }, 250);
+        }
+        function stopBGM() { isBgmPlaying = false; clearInterval(bgmInterval); }
+
+        document.body.addEventListener('click', () => {
+            initAudio(); if (document.getElementById('bgmToggle').checked && !isBgmPlaying) { state.bgm = true; startBGM(); }
+        }, { once: true });
+
+        function playSound(type) {
+            if (!state.sfx) return;
+            initAudio();
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            const vol = state.sfxVol;
+
+            if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1000, now + 0.05); gain.gain.setValueAtTime(vol * 0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05); osc.start(now); osc.stop(now + 0.05); }
+            else if (type === 'win') { osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now); osc.frequency.setValueAtTime(600, now+0.1); osc.frequency.setValueAtTime(800, now+0.2); osc.frequency.setValueAtTime(1046, now+0.3); gain.gain.setValueAtTime(vol, now); gain.gain.linearRampToValueAtTime(0, now+0.6); osc.start(now); osc.stop(now+0.6); }
+            else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.exponentialRampToValueAtTime(10, now+1.2); gain.gain.setValueAtTime(vol, now); gain.gain.exponentialRampToValueAtTime(0.01, now+1.2); osc.start(now); osc.stop(now+1.2); }
+            else if (type === 'magic') { osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(400, now+0.3); gain.gain.setValueAtTime(vol * 0.5, now); gain.gain.linearRampToValueAtTime(0, now+0.3); osc.start(now); osc.stop(now+0.3); }
+        }
+
+        // เพิ่มรับพารามิเตอร์ stats
+        function showOverlay(type, stats = null) {
+            const overlay = document.getElementById('game-overlay');
+            const msgEl = document.getElementById('overlay-msg');
+            const fwContainer = document.getElementById('fireworks-container');
+            const statsEl = document.getElementById('ms-stats');
+            fwContainer.innerHTML = '';
+            
+            if (type === 'win') {
+                msgEl.innerText = i18n[state.lang].msg_win;
+                msgEl.className = 'overlay-title win-text';
+                createFireworks();
+            } else {
+                msgEl.innerText = i18n[state.lang].msg_lose;
+                msgEl.className = 'overlay-title lose-text';
+            }
+
+            // แสดงหน้าต่างสถิติของ Minesweeper
+            if (stats && currentView === 'minesweeper-view') {
+                statsEl.style.display = 'flex';
+                document.getElementById('stat-time-val').innerText = stats.time;
+                document.getElementById('stat-revealed-val').innerText = stats.revealed;
+            } else {
+                statsEl.style.display = 'none';
+            }
+
+            overlay.classList.add('show');
+        }
+
+        function hideOverlay() {
+            document.getElementById('game-overlay').classList.remove('show');
+            document.getElementById('fireworks-container').innerHTML = '';
+        }
+
+        function createFireworks() {
+            const container = document.getElementById('fireworks-container');
+            const emojis = ['🎆', '🎇', '✨', '🎉'];
+            for(let i=0; i<40; i++) {
+                const p = document.createElement('div');
+                p.className = 'firework-particle';
+                p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                p.style.left = (Math.random() * 100) + 'vw';
+                p.style.animation = `shootUp ${Math.random() * 1.5 + 1}s ease-out forwards`;
+                p.style.animationDelay = (Math.random() * 0.5) + 's';
+                container.appendChild(p);
+            }
+        }
+        
+        function retryCurrentGame() {
+            hideOverlay(); playSound('click');
+            if(currentView === 'minesweeper-view') initMS();
+            else if(currentView === 'snake-view') initSnake();
+            else if(currentView === 'memory-view') initMemory();
+            else initTTT();
+        }
+
+        // ==========================================
+        // 1. Tic Tac Toe Logic
+        // ==========================================
+        let tttBoard = Array(9).fill(''), tttCurrentPlayer = 'X', tttGameActive = true, scores = { X: 0, O: 0, Draw: 0 };
+        const winCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+        function resetTTTScore() { scores = { X: 0, O: 0, Draw: 0 }; updateScoreUI(); saveState();}
+        function initTTT() { tttBoard = Array(9).fill(''); tttCurrentPlayer = 'X'; tttGameActive = true; updateTTTStatus(); renderTTT(); }
+        function updateTTTStatus() { if (!tttGameActive) return; document.getElementById('ttt-status').innerText = state.lang === 'th' ? `ตาของผู้เล่น ${tttCurrentPlayer}` : `Player ${tttCurrentPlayer}'s Turn`; }
+        function renderTTT() {
+            const boardEl = document.getElementById('ttt-board'); boardEl.innerHTML = '';
+            tttBoard.forEach((cell, i) => {
+                const div = document.createElement('div'); div.className = `cell-ttt ${cell ? cell.toLowerCase() : ''}`;
+                div.innerText = cell; div.onclick = () => handleTTTClick(i); boardEl.appendChild(div);
+            });
+        }
+        function handleTTTClick(index) {
+            if (tttBoard[index] !== '' || !tttGameActive) return;
+            makeMove(index, tttCurrentPlayer);
+            const mode = document.getElementById('ttt-mode').value;
+            if (tttGameActive && mode.startsWith('bot') && tttCurrentPlayer === 'O') setTimeout(botTurn, 300);
+        }
+        function makeMove(index, player) {
+            playSound('click'); tttBoard[index] = player; renderTTT(); checkTTTWin();
+            if (tttGameActive) { tttCurrentPlayer = tttCurrentPlayer === 'X' ? 'O' : 'X'; updateTTTStatus(); }
+        }
+        function checkTTTWin() {
+            for (let combo of winCombos) {
+                if (tttBoard[combo[0]] && tttBoard[combo[0]] === tttBoard[combo[1]] && tttBoard[combo[0]] === tttBoard[combo[2]]) {
+                    document.getElementById('ttt-status').innerText = state.lang === 'th' ? `ผู้เล่น ${tttCurrentPlayer} ชนะ! 🎉` : `Player ${tttCurrentPlayer} Wins! 🎉`;
+                    scores[tttCurrentPlayer]++; endTTT(); return;
+                }
+            }
+            if (!tttBoard.includes('')) { document.getElementById('ttt-status').innerText = state.lang === 'th' ? 'เสมอ! 🤝' : 'Draw! 🤝'; scores.Draw++; endTTT(); }
+        }
+        function endTTT() { 
+            tttGameActive = false; updateScoreUI(); saveState();
+            document.getElementById('ttt-board').classList.add('shake-animation'); setTimeout(() => document.getElementById('ttt-board').classList.remove('shake-animation'), 400); 
+            playSound(tttBoard.includes('') ? 'win' : 'lose'); 
+        }
+        function updateScoreUI() { document.getElementById('scoreX').innerText = scores.X; document.getElementById('scoreO').innerText = scores.O; document.getElementById('scoreDraw').innerText = scores.Draw; }
+
+        function botTurn() {
+            if (!tttGameActive) return;
+            const mode = document.getElementById('ttt-mode').value;
+            let available = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+            let move;
+            if (mode === 'bot_easy') move = available[Math.floor(Math.random() * available.length)];
+            else if (mode === 'bot_medium') move = Math.random() > 0.5 ? getBestMove(tttBoard, 'O').index : available[Math.floor(Math.random() * available.length)];
+            else if (mode === 'bot_hard') move = Math.random() > 0.8 ? available[Math.floor(Math.random() * available.length)] : getBestMove(tttBoard, 'O').index;
+            else move = getBestMove(tttBoard, 'O').index;
+            makeMove(move, 'O');
+        }
+        function getBestMove(newBoard, player) {
+            let availSpots = newBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+            if (winCombos.some(combo => newBoard[combo[0]] === 'X' && newBoard[combo[1]] === 'X' && newBoard[combo[2]] === 'X')) return { score: -10 };
+            else if (winCombos.some(combo => newBoard[combo[0]] === 'O' && newBoard[combo[1]] === 'O' && newBoard[combo[2]] === 'O')) return { score: 10 };
+            else if (availSpots.length === 0) return { score: 0 };
+
+            let moves = [];
+            for (let i = 0; i < availSpots.length; i++) {
+                let move = { index: availSpots[i] };
+                newBoard[availSpots[i]] = player;
+                if (player === 'O') move.score = getBestMove(newBoard, 'X').score;
+                else move.score = getBestMove(newBoard, 'O').score;
+                newBoard[availSpots[i]] = ''; moves.push(move);
+            }
+            let bestMove, bestScore = player === 'O' ? -10000 : 10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (player === 'O') { if (moves[i].score > bestScore) { bestScore = moves[i].score; bestMove = i; } }
+                else { if (moves[i].score < bestScore) { bestScore = moves[i].score; bestMove = i; } }
+            }
+            return moves[bestMove];
+        }
+
+        // ==========================================
+        // 2. Minesweeper Logic (+ Flashlight + Stats)
+        // ==========================================
+        let MS_ROWS = 9, MS_COLS = 9, MS_MINES = 10;
+        let msBoard = [], msGameActive = false, flagsPlaced = 0, cellsRevealed = 0;
+        let timer = 0, timerInterval = null, isFirstClick = true;
+        let currentMode = 'normal', inventory = [];
+        let selectedItemIndex = null; 
+        
+        // ติดตามเมาส์/นิ้ว สำหรับโหมดไฟฉาย
+        const msBoardEl = document.getElementById('ms-board');
+        msBoardEl.addEventListener('mousemove', updateFlashlight);
+        msBoardEl.addEventListener('touchmove', updateFlashlight);
+        msBoardEl.addEventListener('mouseleave', () => {
+            msBoardEl.style.setProperty('--x', `-100px`);
+            msBoardEl.style.setProperty('--y', `-100px`);
+        });
+
+        function updateFlashlight(e) {
+            if(currentMode !== 'flashlight') return;
+            const rect = msBoardEl.getBoundingClientRect();
+            let clientX = e.clientX, clientY = e.clientY;
+            if(e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
+            }
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            msBoardEl.style.setProperty('--x', `${x}px`);
+            msBoardEl.style.setProperty('--y', `${y}px`);
+        }
+
+        function initMS() {
+            clearInterval(timerInterval);
+            hideOverlay();
+            const diff = document.getElementById('ms-difficulty').value;
+            currentMode = document.getElementById('ms-mode').value;
+            if (diff === 'easy') { MS_ROWS = 9; MS_COLS = 9; MS_MINES = 10; }
+            else if (diff === 'medium') { MS_ROWS = 16; MS_COLS = 16; MS_MINES = 40; }
+            else if (diff === 'hard') { MS_ROWS = 16; MS_COLS = 30; MS_MINES = 99; }
+            
+            msBoard = []; msGameActive = true; isFirstClick = true; flagsPlaced = 0; cellsRevealed = 0; inventory = [];
+            selectedItemIndex = null; 
+            timer = currentMode === 'time' ? 180 : 0;
+            
+            document.getElementById('ms-timer').innerText = padZero(timer);
+            document.getElementById('ms-flag-count').innerText = padZero(MS_MINES);
+            document.getElementById('ms-face').innerText = '🙂';
+            document.getElementById('inventory-container').style.display = currentMode === 'item' ? 'block' : 'none';
+            
+            // จัดการคลาส flashlight
+            if(currentMode === 'flashlight') { msBoardEl.classList.add('flashlight'); } 
+            else { msBoardEl.classList.remove('flashlight'); }
+
+            renderInventory();
+            for (let r = 0; r < MS_ROWS; r++) { let row = []; for (let c = 0; c < MS_COLS; c++) row.push({ isMine: false, revealed: false, flagged: false, neighborMines: 0, hiddenItem: null }); msBoard.push(row); }
+            msBoardEl.style.gridTemplateColumns = `repeat(${MS_COLS}, 32px)`;
+            renderMS();
+        }
+        function padZero(num) { let s = num + ""; while (s.length < 3) s = "0" + s; return s; }
+        function placeMinesAndItems(firstR, firstC) {
+            let minesPlaced = 0;
+            while (minesPlaced < MS_MINES) {
+                let r = Math.floor(Math.random() * MS_ROWS), c = Math.floor(Math.random() * MS_COLS);
+                if (!msBoard[r][c].isMine && Math.abs(r - firstR) > 1 && Math.abs(c - firstC) > 1) { msBoard[r][c].isMine = true; minesPlaced++; }
+            }
+            for (let r = 0; r < MS_ROWS; r++) { for (let c = 0; c < MS_COLS; c++) { if (!msBoard[r][c].isMine) msBoard[r][c].neighborMines = countMines(r, c); } }
+            
+            if (currentMode === 'item') {
+                let itemsToHide = [];
+                if (MS_COLS === 9) itemsToHide = ['magnifier', 'flare', 'drone', 'radar', 'magnifier'];
+                else if (MS_COLS === 16) itemsToHide = ['magnifier', 'magnifier', 'flare', 'flare', 'drone', 'drone', 'radar', 'radar'];
+                else itemsToHide = ['magnifier', 'magnifier', 'magnifier', 'flare', 'flare', 'flare', 'drone', 'drone', 'drone', 'radar', 'radar', 'radar', 'magnifier', 'radar'];
+                
+                for (let item of itemsToHide) {
+                    let placed = false;
+                    while (!placed) {
+                        let r = Math.floor(Math.random() * MS_ROWS), c = Math.floor(Math.random() * MS_COLS);
+                        if (!msBoard[r][c].isMine && !msBoard[r][c].hiddenItem && (r !== firstR || c !== firstC)) { msBoard[r][c].hiddenItem = item; placed = true; }
+                    }
+                }
+            }
+        }
+        function countMines(r, c) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++) { for (let j = -1; j <= 1; j++) { if (r+i >= 0 && r+i < MS_ROWS && c+j >= 0 && c+j < MS_COLS && msBoard[r+i][c+j].isMine) count++; } }
+            return count;
+        }
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (currentMode === 'time') { timer--; document.getElementById('ms-timer').innerText = padZero(timer); if (timer <= 0) loseMS(true); }
+                else { timer++; if(timer <= 999) document.getElementById('ms-timer').innerText = padZero(timer); }
+            }, 1000);
+        }
+        function renderMS() {
+            msBoardEl.innerHTML = '';
+            for (let r = 0; r < MS_ROWS; r++) {
+                for (let c = 0; c < MS_COLS; c++) {
+                    const cell = msBoard[r][c]; const div = document.createElement('div'); div.className = 'cell-ms';
+                    if (cell.revealed) {
+                        div.classList.add('revealed');
+                        if (cell.isMine) { div.classList.add('mine'); div.innerText = '💣'; }
+                        else if (cell.neighborMines > 0) { div.innerText = cell.neighborMines; div.classList.add(`num-${cell.neighborMines}`); }
+                    } else if (cell.flagged) { div.innerText = '🚩'; div.style.color = 'var(--danger)'; }
+                    
+                    div.onmousedown = (e) => { if (e.button === 0 && !cell.revealed && !cell.flagged && msGameActive) document.getElementById('ms-face').innerText = '😮'; };
+                    div.onmouseup = () => { if(msGameActive) document.getElementById('ms-face').innerText = '🙂'; };
+                    div.onclick = () => clickMS(r, c);
+                    div.oncontextmenu = (e) => { e.preventDefault(); toggleFlag(r, c); };
+                    
+                    msBoardEl.appendChild(div);
+                }
+            }
+        }
+        
+        function revealCellNormal(r, c) {
+            if (!msGameActive || msBoard[r][c].revealed || msBoard[r][c].flagged) return;
+            
+            msBoard[r][c].revealed = true; cellsRevealed++; 
+            if (msBoard[r][c].hiddenItem) { inventory.push(msBoard[r][c].hiddenItem); msBoard[r][c].hiddenItem = null; playSound('item'); renderInventory(); }
+            
+            if (msBoard[r][c].isMine) { 
+                loseMS(false); 
+            } else {
+                if (msBoard[r][c].neighborMines === 0) {
+                    for (let i = -1; i <= 1; i++) { for (let j = -1; j <= 1; j++) { if (r+i >= 0 && r+i < MS_ROWS && c+j >= 0 && c+j < MS_COLS) revealCellNormal(r+i, c+j); } }
+                }
+                checkMSWin();
+            }
+        }
+
+        function clickMS(r, c) {
+            if (!msGameActive) return;
+            if (isFirstClick) { isFirstClick = false; placeMinesAndItems(r, c); startTimer(); }
+
+            if (selectedItemIndex !== null) {
+                let itemType = inventory[selectedItemIndex];
+                let used = false;
+                
+                if (itemType === 'magnifier') used = useMagnifier(r, c);
+                else if (itemType === 'flare') used = useFlare();
+                else if (itemType === 'drone') used = useDrone();
+                else if (itemType === 'radar') used = useRadar(r, c);
+
+                if (used) { inventory.splice(selectedItemIndex, 1); playSound('magic'); } 
+                else { playSound('click'); }
+                
+                selectedItemIndex = null; 
+                renderInventory(); renderMS();
+                return;
+            }
+
+            if (msBoard[r][c].revealed || msBoard[r][c].flagged) return;
+            playSound('click');
+            revealCellNormal(r, c);
+            renderMS();
+        }
+
+        function toggleFlag(r, c) {
+            if (!msGameActive || msBoard[r][c].revealed) return;
+            playSound('click'); msBoard[r][c].flagged = !msBoard[r][c].flagged;
+            flagsPlaced += msBoard[r][c].flagged ? 1 : -1;
+            document.getElementById('ms-flag-count').innerText = padZero(Math.max(0, MS_MINES - flagsPlaced)); renderMS();
+        }
+        
+        function loseMS(timeout = false) {
+            msGameActive = false; clearInterval(timerInterval); document.getElementById('ms-face').innerText = timeout ? '⏰' : '😵'; 
+            playSound('lose'); 
+            msBoardEl.classList.add('shake-animation');
+            for (let r = 0; r < MS_ROWS; r++) { for (let c = 0; c < MS_COLS; c++) { if (msBoard[r][c].isMine) msBoard[r][c].revealed = true; } }
+            renderMS();
+            
+            // ส่งค่าสถิติไปหน้า Game Over
+            let timeUsed = currentMode === 'time' ? (180 - timer) : timer;
+            setTimeout(() => showOverlay('lose', { time: timeUsed, revealed: cellsRevealed }), 1200); 
+        }
+        
+        function checkMSWin() {
+            if (cellsRevealed === (MS_ROWS * MS_COLS) - MS_MINES) { 
+                msGameActive = false; clearInterval(timerInterval); document.getElementById('ms-face').innerText = '😎'; 
+                playSound('win'); document.getElementById('ms-flag-count').innerText = '000'; 
+                
+                // ส่งค่าสถิติไปหน้า Game Over
+                let timeUsed = currentMode === 'time' ? (180 - timer) : timer;
+                setTimeout(() => showOverlay('win', { time: timeUsed, revealed: cellsRevealed }), 500); 
+            }
+        }
+
+        // --- Item System ---
+        function renderInventory() {
+            const invEl = document.getElementById('ms-inventory'); invEl.innerHTML = '';
+            if (inventory.length === 0) { invEl.innerHTML = `<span style="color:var(--text-color); opacity:0.5; font-size:0.9rem;">(ยังไม่มีไอเทม)</span>`; return; }
+            
+            inventory.forEach((item, index) => {
+                const div = document.createElement('div'); 
+                div.className = 'item-slot'; 
+                if (selectedItemIndex === index) div.classList.add('selected'); 
+                
+                let icon = '', tooltip = '';
+                if (item === 'magnifier') { icon = '🔎'; tooltip = state.lang === 'th' ? 'แว่นขยาย: ส่องช่องเดียว' : 'Magnifier: Peek 1 cell'; }
+                else if (item === 'flare') { icon = '🎆'; tooltip = state.lang === 'th' ? 'พลุ: สุ่มเปิด 3 ช่อง' : 'Flare: Reveal 3 safe cells'; }
+                else if (item === 'drone') { icon = '🚁'; tooltip = state.lang === 'th' ? 'โดรน: ล็อกเป้าระเบิด 1 ลูก' : 'Drone: Flag 1 random mine'; }
+                else if (item === 'radar') { icon = '📡'; tooltip = state.lang === 'th' ? 'เรดาร์: สแกนรอบๆ 3x3' : 'Radar: Scan 3x3 area'; }
+                
+                div.innerHTML = `${icon}<span class="item-tooltip">${tooltip}</span>`;
+                
+                div.onclick = () => {
+                    playSound('click');
+                    if (selectedItemIndex === index) selectedItemIndex = null; 
+                    else selectedItemIndex = index; 
+                    renderInventory();
+                };
+                
+                invEl.appendChild(div);
+            });
+        }
+
+        function useMagnifier(r, c) {
+            if (msBoard[r][c].revealed || msBoard[r][c].flagged) return false;
+            if (msBoard[r][c].isMine) {
+                msBoard[r][c].flagged = true; flagsPlaced++;
+                document.getElementById('ms-flag-count').innerText = padZero(Math.max(0, MS_MINES - flagsPlaced));
+            } else { revealCellNormal(r, c); }
+            return true;
+        }
+
+        function useFlare() {
+            let safeSpots = [];
+            for (let i = 0; i < MS_ROWS; i++) {
+                for (let j = 0; j < MS_COLS; j++) { if (!msBoard[i][j].isMine && !msBoard[i][j].revealed) safeSpots.push({r: i, c: j}); }
+            }
+            if (safeSpots.length === 0) return false;
+            
+            let spotsToReveal = Math.min(3, safeSpots.length);
+            for (let k = 0; k < spotsToReveal; k++) {
+                let idx = Math.floor(Math.random() * safeSpots.length);
+                let spot = safeSpots[idx]; revealCellNormal(spot.r, spot.c); safeSpots.splice(idx, 1);
+            }
+            return true;
+        }
+
+        function useDrone() {
+            let hiddenMines = [];
+            for (let i = 0; i < MS_ROWS; i++) {
+                for (let j = 0; j < MS_COLS; j++) { if (msBoard[i][j].isMine && !msBoard[i][j].flagged) hiddenMines.push({r: i, c: j}); }
+            }
+            if (hiddenMines.length === 0) return false;
+
+            let target = hiddenMines[Math.floor(Math.random() * hiddenMines.length)];
+            msBoard[target.r][target.c].flagged = true; flagsPlaced++;
+            document.getElementById('ms-flag-count').innerText = padZero(Math.max(0, MS_MINES - flagsPlaced));
+            checkMSWin(); return true;
+        }
+
+        function useRadar(r, c) {
+            let used = false;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    let nr = r + i, nc = c + j;
+                    if (nr >= 0 && nr < MS_ROWS && nc >= 0 && nc < MS_COLS) {
+                        if (!msBoard[nr][nc].revealed && !msBoard[nr][nc].flagged) {
+                            if (msBoard[nr][nc].isMine) {
+                                msBoard[nr][nc].flagged = true; flagsPlaced++; used = true;
+                            } else {
+                                revealCellNormal(nr, nc); used = true;
+                            }
+                        }
+                    }
+                }
+            }
+            document.getElementById('ms-flag-count').innerText = padZero(Math.max(0, MS_MINES - flagsPlaced));
+            return used;
+        }
+
+        // ==========================================
+        // 3. Snake Game
+        // ==========================================
+        let snake = [], food = {}, dir = 'RIGHT', snakeInterval, snakeScore = 0;
+        const sSize = 15;
+        function initSnake() {
+            clearInterval(snakeInterval); hideOverlay();
+            snake = [{x:7, y:7}, {x:6, y:7}]; dir = 'RIGHT'; snakeScore = 0;
+            document.getElementById('snake-score').innerText = snakeScore;
+            spawnFood(); drawSnake();
+            snakeInterval = setInterval(moveSnake, 200);
+        }
+        function spawnFood() {
+            food = {x: Math.floor(Math.random()*sSize), y: Math.floor(Math.random()*sSize)};
+            if(snake.some(s => s.x===food.x && s.y===food.y)) spawnFood();
+        }
+        function drawSnake() {
+            const b = document.getElementById('snake-board'); b.innerHTML = '';
+            for(let y=0; y<sSize; y++) {
+                for(let x=0; x<sSize; x++) {
+                    let d = document.createElement('div'); d.className = 'cell-snake';
+                    if(food.x===x && food.y===y) d.classList.add('food');
+                    else {
+                        let idx = snake.findIndex(s => s.x===x && s.y===y);
+                        if(idx===0) d.classList.add('snake-head');
+                        else if(idx>0) d.classList.add('snake-body');
+                    }
+                    b.appendChild(d);
+                }
+            }
+        }
+        function moveSnake() {
+            let h = {x: snake[0].x, y: snake[0].y};
+            if(dir==='UP') h.y--; else if(dir==='DOWN') h.y++; else if(dir==='LEFT') h.x--; else if(dir==='RIGHT') h.x++;
+            
+            if(h.x<0 || h.x>=sSize || h.y<0 || h.y>=sSize || snake.some(s => s.x===h.x && s.y===h.y)) {
+                clearInterval(snakeInterval); playSound('lose'); showOverlay('lose'); return;
+            }
+            snake.unshift(h);
+            if(h.x===food.x && h.y===food.y) {
+                snakeScore+=10; document.getElementById('snake-score').innerText = snakeScore; playSound('magic');
+                spawnFood();
+                clearInterval(snakeInterval); snakeInterval = setInterval(moveSnake, Math.max(80, 200 - (snakeScore*2)));
+            } else { snake.pop(); }
+            drawSnake();
+        }
+        function changeSnakeDir(newDir) {
+            if((newDir==='UP'&&dir!=='DOWN') || (newDir==='DOWN'&&dir!=='UP') || (newDir==='LEFT'&&dir!=='RIGHT') || (newDir==='RIGHT'&&dir!=='LEFT')) {
+                dir = newDir; playSound('click');
+            }
+        }
+        window.addEventListener('keydown', e => {
+            if(currentView !== 'snake-view') return;
+            if(e.key==='ArrowUp') changeSnakeDir('UP');
+            if(e.key==='ArrowDown') changeSnakeDir('DOWN');
+            if(e.key==='ArrowLeft') changeSnakeDir('LEFT');
+            if(e.key==='ArrowRight') changeSnakeDir('RIGHT');
+            if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+        });
+
+        // ==========================================
+        // 4. Memory Match
+        // ==========================================
+        const emojis = ['💎','⛏️','🗡️','🍎','🪵','🪙','🍖','🏹'];
+        let memCards = [], flipped = [], matched = 0, memActive = false;
+        function initMemory() {
+            hideOverlay();
+            memCards = [...emojis, ...emojis].sort(() => 0.5 - Math.random());
+            flipped = []; matched = 0; memActive = true;
+            const b = document.getElementById('memory-board'); b.innerHTML = '';
+            memCards.forEach((emoji, i) => {
+                let card = document.createElement('div'); card.className = 'card-mem'; card.dataset.i = i;
+                card.innerHTML = `<div class="card-inner"><div class="card-front">❓</div><div class="card-back">${emoji}</div></div>`;
+                card.onclick = () => flipCard(card, emoji);
+                b.appendChild(card);
+            });
+        }
+        function flipCard(card, emoji) {
+            if(!memActive || flipped.length >= 2 || card.classList.contains('flipped')) return;
+            card.classList.add('flipped'); playSound('click'); flipped.push({card, emoji});
+            
+            if(flipped.length === 2) {
+                memActive = false;
+                if(flipped[0].emoji === flipped[1].emoji) {
+                    setTimeout(() => {
+                        flipped[0].card.classList.add('matched'); flipped[1].card.classList.add('matched');
+                        playSound('win'); matched += 2; flipped = []; memActive = true;
+                        if(matched === memCards.length) setTimeout(() => showOverlay('win'), 500);
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        flipped[0].card.classList.remove('flipped'); flipped[1].card.classList.remove('flipped');
+                        flipped = []; memActive = true;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
