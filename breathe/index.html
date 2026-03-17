@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathing Bubble | NaphatHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; margin: 0; padding: 0; }
+        body { background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        
+        .back-link { position: absolute; top: 20px; left: 20px; color: #94a3b8; text-decoration: none; font-weight: 600; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 20px; transition: 0.2s; z-index: 10; }
+        .back-link:hover { background: rgba(255,255,255,0.2); color: white; }
+
+        .container { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        h1 { font-weight: 300; color: #94a3b8; margin-bottom: 50px; font-size: 20px; letter-spacing: 2px; }
+
+        .bubble-container { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; }
+        .gradient-circle { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #38bdf8, #818cf8); opacity: 0.2; }
+        .bubble { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #38bdf8, #6366f1); box-shadow: 0 0 50px rgba(56, 189, 248, 0.5); display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 4s ease-in-out; transform: scale(0.5); }
+
+        .bubble.grow { transform: scale(1); }
+        .bubble.shrink { transform: scale(0.5); }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-link">🔙 กลับ Hub</a>
+
+    <div class="container">
+        <h1>🧘 ฝึกลมหายใจคลายเครียด</h1>
+        <div class="bubble-container">
+            <div class="gradient-circle"></div>
+            <div class="bubble" id="bubble">หายใจเข้า...</div>
+        </div>
+    </div>
+
+    <script>
+        const bubble = document.getElementById('bubble');
+        const totalTime = 8000; // 8 วินาทีต่อรอบ (เข้า 4 ออก 4)
+        const breatheTime = 4000;
+
+        function breatheAnimation() {
+            bubble.innerText = "หายใจเข้า...";
+            bubble.className = "bubble grow";
+
+            setTimeout(() => {
+                bubble.innerText = "หายใจออก...";
+                bubble.className = "bubble shrink";
+            }, breatheTime);
+        }
+
+        // เริ่มทันที
+        breatheAnimation();
+        // เล่นวนลูป
+        setInterval(breatheAnimation, totalTime);
+    </script>
+<script>
+        const globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playGlobalClick() {
+            if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+            const osc = globalAudioCtx.createOscillator();
+            const gain = globalAudioCtx.createGain();
+            osc.connect(gain); gain.connect(globalAudioCtx.destination);
+            osc.frequency.setValueAtTime(800, globalAudioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, globalAudioCtx.currentTime);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, globalAudioCtx.currentTime + 0.1);
+            osc.stop(globalAudioCtx.currentTime + 0.1);
+        }
+
+        // จับคู่เสียงกับทุกปุ่มและทุกลิงก์กลับ Hub บนหน้าเว็บ
+        document.querySelectorAll('button, a[href="../index.html"], .back-link-hub').forEach(btn => {
+            btn.addEventListener('click', playGlobalClick);
+        });
+    </script>
+</body>
+</html>

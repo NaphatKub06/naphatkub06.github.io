@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator | NaphatHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #050505; color: #10b981; font-family: 'Prompt', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        .container { background: #111; padding: 30px; border-radius: 12px; border: 1px solid #10b981; width: 100%; max-width: 450px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+        .back-link { position: absolute; top: 20px; left: 20px; color: #10b981; text-decoration: none; font-weight: 600; border: 1px solid #10b981; padding: 8px 15px; border-radius: 8px; }
+        .back-link:hover { background: #10b981; color: #000; }
+
+        h1 { text-align: center; margin-bottom: 20px; font-weight: 600; }
+        
+        .result-box { background: #000; border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .result-box span { font-family: 'Courier Prime', monospace; font-size: 24px; word-break: break-all; }
+        .copy-btn { background: #10b981; color: #000; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-family: 'Prompt', sans-serif; }
+        .copy-btn:active { transform: scale(0.95); }
+
+        .settings { margin-bottom: 20px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #222; }
+        .setting-row:last-child { border-bottom: none; }
+        
+        input[type="range"] { width: 100px; accent-color: #10b981; }
+        input[type="checkbox"] { width: 18px; height: 18px; accent-color: #10b981; cursor: pointer; }
+
+        .gen-btn { width: 100%; background: transparent; color: #10b981; border: 2px solid #10b981; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
+        .gen-btn:hover { background: #10b981; color: #000; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-link">🔙 Hub</a>
+    
+    <div class="container">
+        <h1>🔐 SECURE_PASS_GEN</h1>
+        
+        <div class="result-box">
+            <span id="result">CLICK_GENERATE</span>
+            <button class="copy-btn" onclick="copyPassword()" id="copyBtn">COPY</button>
+        </div>
+
+        <div class="settings">
+            <div class="setting-row">
+                <label>ความยาวรหัสผ่าน (Length)</label>
+                <div>
+                    <span id="lengthVal" style="margin-right: 10px; font-weight: 600;">12</span>
+                    <input type="range" id="length" min="8" max="32" value="12" oninput="document.getElementById('lengthVal').innerText = this.value">
+                </div>
+            </div>
+            <div class="setting-row"><label>ใช้ตัวพิมพ์ใหญ่ (A-Z)</label><input type="checkbox" id="uppercase" checked></div>
+            <div class="setting-row"><label>ใช้ตัวเลข (0-9)</label><input type="checkbox" id="numbers" checked></div>
+            <div class="setting-row"><label>ใช้อักขระพิเศษ (!@#$)</label><input type="checkbox" id="symbols" checked></div>
+        </div>
+
+        <button class="gen-btn" onclick="generatePassword()">Generate Password</button>
+    </div>
+
+    <script>
+        const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+        const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const numberChars = "0123456789";
+        const symbolChars = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+        function generatePassword() {
+            let length = document.getElementById('length').value;
+            let hasUpper = document.getElementById('uppercase').checked;
+            let hasNumber = document.getElementById('numbers').checked;
+            let hasSymbol = document.getElementById('symbols').checked;
+
+            let allowedChars = lowercaseChars;
+            if (hasUpper) allowedChars += uppercaseChars;
+            if (hasNumber) allowedChars += numberChars;
+            if (hasSymbol) allowedChars += symbolChars;
+
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                let randomIndex = Math.floor(Math.random() * allowedChars.length);
+                password += allowedChars[randomIndex];
+            }
+
+            document.getElementById('result').innerText = password;
+            document.getElementById('copyBtn').innerText = "COPY";
+            document.getElementById('copyBtn').style.background = "#10b981";
+        }
+
+        function copyPassword() {
+            const pwd = document.getElementById('result').innerText;
+            if(pwd === "CLICK_GENERATE") return;
+            
+            navigator.clipboard.writeText(pwd).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = "COPIED!";
+                btn.style.background = "#3b82f6"; // สีฟ้าตอนก๊อปปี้สำเร็จ
+                setTimeout(() => {
+                    btn.innerText = "COPY";
+                    btn.style.background = "#10b981";
+                }, 2000);
+            });
+        }
+        
+        // สุ่มให้ 1 ครั้งตอนเปิดหน้าเว็บ
+        generatePassword();
+    </script>
+<script>
+        const globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playGlobalClick() {
+            if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+            const osc = globalAudioCtx.createOscillator();
+            const gain = globalAudioCtx.createGain();
+            osc.connect(gain); gain.connect(globalAudioCtx.destination);
+            osc.frequency.setValueAtTime(800, globalAudioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, globalAudioCtx.currentTime);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, globalAudioCtx.currentTime + 0.1);
+            osc.stop(globalAudioCtx.currentTime + 0.1);
+        }
+
+        // จับคู่เสียงกับทุกปุ่มและทุกลิงก์กลับ Hub บนหน้าเว็บ
+        document.querySelectorAll('button, a[href="../index.html"], .back-link-hub').forEach(btn => {
+            btn.addEventListener('click', playGlobalClick);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer | NaphatHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f43f5e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; transition: background-color 0.5s; }
+        body.break-mode { background-color: #10b981; }
+        
+        .container { text-align: center; background: rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 24px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
+        .mode-text { font-size: 20px; font-weight: 600; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;}
+        .timer { font-size: 80px; font-weight: 700; margin-bottom: 30px; line-height: 1; }
+        
+        .controls { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        button { border: none; padding: 15px 30px; font-size: 18px; font-weight: 600; border-radius: 50px; cursor: pointer; transition: transform 0.2s, background 0.2s; }
+        button:active { transform: scale(0.95); }
+        .btn-main { background: white; color: #f43f5e; }
+        body.break-mode .btn-main { color: #10b981; }
+        .btn-sub { background: rgba(255,255,255,0.2); color: white; }
+        .btn-sub:hover { background: rgba(255,255,255,0.3); }
+
+        .back-link { position: absolute; top: 20px; left: 20px; color: white; text-decoration: none; font-weight: 600; background: rgba(0,0,0,0.2); padding: 8px 15px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-link">🔙 กลับ Hub</a>
+    <div class="container">
+        <div class="mode-text" id="modeText">เวลาทำงานโฟกัส 🍅</div>
+        <div class="timer" id="timeDisplay">25:00</div>
+        <div class="controls">
+            <button class="btn-main" id="startBtn" onclick="toggleTimer()">เริ่มจับเวลา</button>
+            <button class="btn-sub" onclick="resetTimer()">รีเซ็ต</button>
+        </div>
+        <button class="btn-sub" onclick="switchMode()" style="width: 100%;" id="switchBtn">สลับไปเวลาพัก (5 นาที)</button>
+    </div>
+
+    <script>
+        let timeLeft = 25 * 60; let timerId = null; let isWorkMode = true;
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const modeText = document.getElementById('modeText');
+        const switchBtn = document.getElementById('switchBtn');
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60); const seconds = timeLeft % 60;
+            timeDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            if (timerId === null) {
+                timerId = setInterval(() => {
+                    timeLeft--; updateDisplay();
+                    if (timeLeft === 0) { playAlarm(); switchMode(); }
+                }, 1000);
+                startBtn.innerText = "หยุดชั่วคราว";
+            } else {
+                clearInterval(timerId); timerId = null;
+                startBtn.innerText = "เริ่มต่อ";
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId); timerId = null;
+            timeLeft = isWorkMode ? 25 * 60 : 5 * 60;
+            startBtn.innerText = "เริ่มจับเวลา"; updateDisplay();
+        }
+
+        function switchMode() {
+            isWorkMode = !isWorkMode; clearInterval(timerId); timerId = null;
+            if (isWorkMode) {
+                document.body.classList.remove('break-mode'); timeLeft = 25 * 60;
+                modeText.innerText = "เวลาทำงานโฟกัส 🍅"; switchBtn.innerText = "สลับไปเวลาพัก (5 นาที)";
+            } else {
+                document.body.classList.add('break-mode'); timeLeft = 5 * 60;
+                modeText.innerText = "เวลาพักผ่อน ☕"; switchBtn.innerText = "สลับไปทำงาน (25 นาที)";
+            }
+            startBtn.innerText = "เริ่มจับเวลา"; updateDisplay();
+        }
+
+        function playAlarm() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(); osc.type = 'square'; osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.5);
+        }
+        updateDisplay();
+    </script>
+<script>
+        const globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playGlobalClick() {
+            if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+            const osc = globalAudioCtx.createOscillator();
+            const gain = globalAudioCtx.createGain();
+            osc.connect(gain); gain.connect(globalAudioCtx.destination);
+            osc.frequency.setValueAtTime(800, globalAudioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, globalAudioCtx.currentTime);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, globalAudioCtx.currentTime + 0.1);
+            osc.stop(globalAudioCtx.currentTime + 0.1);
+        }
+
+        // จับคู่เสียงกับทุกปุ่มและทุกลิงก์กลับ Hub บนหน้าเว็บ
+        document.querySelectorAll('button, a[href="../index.html"], .back-link-hub').forEach(btn => {
+            btn.addEventListener('click', playGlobalClick);
+        });
+    </script>
+</body>
+</html>

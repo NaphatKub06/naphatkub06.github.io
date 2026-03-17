@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Board | NaphatHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; margin: 0; padding: 0; }
+        body { background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background-image: radial-gradient(circle at center, #1e293b, #0f172a); }
+        
+        .container { background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 24px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 600px; border: 1px solid #334155; position: relative; }
+        .back-link { position: absolute; top: -60px; left: 0; color: #94a3b8; text-decoration: none; font-weight: 600; background: #1e293b; padding: 10px 20px; border-radius: 20px; transition: 0.2s; border: 1px solid #334155; }
+        .back-link:hover { background: #334155; color: white; }
+
+        h1 { font-size: 28px; color: #38bdf8; margin-bottom: 5px; }
+        #eventNameDisplay { font-size: 18px; color: #cbd5e1; margin-bottom: 30px; font-weight: 400; }
+
+        .time-blocks { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 30px; }
+        .block { background: #0ea5e9; padding: 20px; border-radius: 16px; min-width: 100px; box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); }
+        .block span { display: block; font-size: 42px; font-weight: 700; line-height: 1; }
+        .block small { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+
+        .setup-box { background: #1e293b; padding: 25px; border-radius: 16px; margin-top: 20px; border: 1px dashed #475569; }
+        
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
+        .datetime-row { display: flex; gap: 10px; }
+
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #334155; outline: none; background: #0f172a; color: white; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #0ea5e9; }
+        /* ทำให้ Icon ปฏิทินและนาฬิกาเป็นสีขาว */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
+        .btn-start { background: #0ea5e9; color: white; }
+        .btn-start:hover { background: #0284c7; }
+        .btn-reset { background: #ef4444; color: white; }
+        .btn-reset:hover { background: #dc2626; }
+
+        /* ปุ่มกลับ Hub */
+        .back-link-hub {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #f8fafc;
+            text-decoration: none;
+            font-weight: 600;
+            background: #334155;
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .back-link-hub:active { transform: scale(0.95); }
+
+        /* สำหรับโหมดมืด (ถ้าเว็บนั้นมี) */
+        body.dark-mode .back-link-hub {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-link-hub">🔙 กลับ Hub</a>
+    <div class="container">
+
+        <h1>⏳ นับถอยหลังสู่...</h1>
+        <div id="eventNameDisplay">ยังไม่ได้ตั้งค่ากิจกรรม</div>
+
+        <div class="time-blocks">
+            <div class="block"><span id="days">00</span><small>วัน</small></div>
+            <div class="block"><span id="hours">00</span><small>ชั่วโมง</small></div>
+            <div class="block"><span id="minutes">00</span><small>นาที</small></div>
+            <div class="block" style="background: #ef4444; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);"><span id="seconds">00</span><small>วินาที</small></div>
+        </div>
+
+        <div class="setup-box">
+            <div class="input-group">
+                <label>ชื่อกิจกรรม</label>
+                <input type="text" id="nameInput" placeholder="เช่น ปีใหม่, วันเกิดแฟน">
+            </div>
+            
+            <div class="input-group">
+                <label>เลือกวันที่และเวลา</label>
+                <div class="datetime-row">
+                    <input type="date" id="dateInput" style="flex: 2;">
+                    <input type="time" id="timeInput" style="flex: 1;" value="00:00">
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-reset" onclick="resetCountdown()">ล้างค่าใหม่</button>
+                <button class="btn-start" onclick="setCountdown()">เริ่มนับถอยหลัง</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playGlobalClick() {
+            if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+            const osc = globalAudioCtx.createOscillator(); const gain = globalAudioCtx.createGain();
+            osc.connect(gain); gain.connect(globalAudioCtx.destination);
+            osc.frequency.setValueAtTime(800, globalAudioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, globalAudioCtx.currentTime);
+            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, globalAudioCtx.currentTime + 0.1); osc.stop(globalAudioCtx.currentTime + 0.1);
+        }
+        document.addEventListener('click', (e) => {
+            if(e.target.tagName === 'BUTTON' || e.target.closest('a')) playGlobalClick();
+        });
+    </script>
+
+    <script>
+        let countdownInterval;
+
+        function formatThaiDate(dateString, timeString) {
+            const date = new Date(`${dateString}T${timeString}`);
+            const day = date.getDate();
+            const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            const month = monthNames[date.getMonth()];
+            const yearBE = date.getFullYear() + 543; // แปลงเป็น พ.ศ.
+            const time = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            return `เป้าหมาย: ${day} ${month} ${yearBE} เวลา ${time} น.`;
+        }
+
+        function loadSavedCountdown() {
+            const savedData = JSON.parse(localStorage.getItem('naphathub_countdown'));
+            if (savedData && savedData.dateStr && savedData.timeStr) {
+                document.getElementById('nameInput').value = savedData.name;
+                document.getElementById('dateInput').value = savedData.dateStr;
+                document.getElementById('timeInput').value = savedData.timeStr;
+                startCountdown(savedData.name, savedData.dateStr, savedData.timeStr);
+            }
+        }
+
+        function setCountdown() {
+            const name = document.getElementById('nameInput').value || 'วันสำคัญ';
+            const dateVal = document.getElementById('dateInput').value;
+            const timeVal = document.getElementById('timeInput').value || '00:00';
+            
+            if (!dateVal) return alert('กรุณากดเลือกวันที่ตรงไอคอนปฏิทินก่อนครับ!');
+            
+            localStorage.setItem('naphathub_countdown', JSON.stringify({ name: name, dateStr: dateVal, timeStr: timeVal }));
+            startCountdown(name, dateVal, timeVal);
+        }
+
+        function startCountdown(name, dateStr, timeStr) {
+            clearInterval(countdownInterval);
+            const targetTime = new Date(`${dateStr}T${timeStr}`).getTime();
+            
+            // แสดงผลวันที่แบบ พ.ศ.
+            const displayDate = formatThaiDate(dateStr, timeStr);
+            document.getElementById('eventNameDisplay').innerHTML = `<strong>${name}</strong><br><span style="font-size: 14px; opacity: 0.7;">${displayDate}</span>`;
+
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetTime - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('eventNameDisplay').innerHTML = `🎉 <strong>ถึงเวลาของ ${name} แล้ว!</strong> 🎉`;
+                    document.getElementById('days').innerText = "00";
+                    document.getElementById('hours').innerText = "00";
+                    document.getElementById('minutes').innerText = "00";
+                    document.getElementById('seconds').innerText = "00";
+                    return;
+                }
+
+                document.getElementById('days').innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                document.getElementById('hours').innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                document.getElementById('minutes').innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                document.getElementById('seconds').innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            }, 1000);
+        }
+
+        function resetCountdown() {
+            if(confirm("แน่ใจหรือไม่ที่จะล้างค่ากิจกรรมที่นับถอยหลังอยู่?")) {
+                clearInterval(countdownInterval);
+                localStorage.removeItem('naphathub_countdown');
+                document.getElementById('nameInput').value = "";
+                document.getElementById('dateInput').value = "";
+                document.getElementById('timeInput').value = "00:00";
+                document.getElementById('eventNameDisplay').innerText = "ยังไม่ได้ตั้งค่ากิจกรรม";
+                document.getElementById('days').innerText = "00";
+                document.getElementById('hours').innerText = "00";
+                document.getElementById('minutes').innerText = "00";
+                document.getElementById('seconds').innerText = "00";
+            }
+        }
+
+        loadSavedCountdown();
+    </script>
+</body>
+</html>
