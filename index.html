@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NaphatHub | My Mini Projects</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --text-main: #f8fafc;
+            --text-light: #94a3b8;
+            --card-bg: #1e293b;
+            --card-hover: #334155;
+            --primary: #4361ee;
+            --accent: #10b981;
+        }
+
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+        }
+
+        .header { text-align: center; margin-bottom: 50px; animation: fadeInDown 0.8s ease; }
+        .header h1 { font-size: 42px; font-weight: 700; background: linear-gradient(to right, #4361ee, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .header p { font-size: 18px; color: var(--text-light); }
+
+        .projects-grid {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 800px;
+            width: 100%;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        /* Card Design */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 350px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background-color: var(--card-hover);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary);
+        }
+
+        .card-icon { font-size: 60px; margin-bottom: 20px; }
+        .card-title { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
+        .card-desc { font-size: 14px; color: var(--text-light); line-height: 1.5; }
+
+        /* Animations */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .footer { margin-top: auto; padding-top: 40px; color: var(--text-light); font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>NaphatHub</h1>
+        <p>รวมโปรเจกต์เล็กๆ 🚀</p>
+    </div>
+
+    <div class="projects-grid">
+        <a href="kidplearn/index.html" class="card">
+            <div class="card-icon">💸</div>
+            <div class="card-title">KidPlearn</div>
+            <div class="card-desc">ระบบจำลองเครื่องคิดเงินและเงินทอน ใช้งานง่าย ไม่ต้องง้อฐานข้อมูล</div>
+        </a>
+
+        <a href="arcade/index.html" class="card">
+            <div class="card-icon">🎮</div>
+            <div class="card-title">Arcade Minigames</div>
+            <div class="card-desc">รวมมินิเกมสนุกๆ คลายเครียด เข้ามาเล่นฆ่าเวลาได้เลย!</div>
+        </a>
+    </div>
+
+    <div class="footer">
+        © 2026 NaphatHub. All rights reserved.
+    </div>
+
+</body>
+</html>
