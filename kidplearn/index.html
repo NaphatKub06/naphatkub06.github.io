@@ -328,7 +328,7 @@
         msg1.onend = function() {
             setTimeout(() => {
                 if(isTTSOn) window.speechSynthesis.speak(msg2);
-            }, 500); // เว้นวรรค 0.5 วิเหมือนเดิม
+            }, 50); // เว้นวรรค 0.5 วิเหมือนเดิม
         };
 
         window.speechSynthesis.speak(msg1);
