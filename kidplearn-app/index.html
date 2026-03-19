@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#4361ee">
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -550,6 +551,12 @@
     function closeHistory() { document.getElementById('historyModal').classList.remove('active'); }
     function clearHistory() { playSound('error'); if(confirm('ยืนยันการล้างยอดขายของวันนี้ทั้งหมด? (ไม่สามารถกู้คืนได้)')) { localStorage.setItem('kidplearn_history', JSON.stringify({ bills: 0, total: 0 })); openHistory(); } }
 </script>
-
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(function() {
+                console.log('Service Worker Registered');
+            });
+        }
+    </script>
 </body>
 </html>
