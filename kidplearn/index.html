@@ -306,6 +306,12 @@
         if (!isTTSOn || !('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel(); 
 
+        // กันเหนียว: ถ้าเสียงยังไม่โหลด ให้พยายามโหลดใหม่ตรงนี้เลย
+        if (availableVoices.length === 0) {
+            availableVoices = window.speechSynthesis.getVoices();
+        }
+
+        // หาเสียงภาษาไทย โดยเน้นหาเสียงผู้หญิงถ้ามี (Google, Kanya, Premwadee)
         let thaiVoices = availableVoices.filter(v => v.lang.includes('th') || v.lang.includes('TH'));
         let preferredVoice = thaiVoices.find(v => v.name.includes('Google') || v.name.includes('Kanya') || v.name.includes('Premwadee')) || thaiVoices[0];
 
@@ -322,7 +328,7 @@
         msg1.onend = function() {
             setTimeout(() => {
                 if(isTTSOn) window.speechSynthesis.speak(msg2);
-            }, 50); 
+            }, 500); // เว้นวรรค 0.5 วิเหมือนเดิม
         };
 
         window.speechSynthesis.speak(msg1);
