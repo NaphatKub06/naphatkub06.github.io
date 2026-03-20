@@ -340,7 +340,7 @@
         msg1.onend = function() {
             setTimeout(() => {
                 if(isTTSOn) window.speechSynthesis.speak(msg2);
-            }, 500); 
+            }, 50); 
         };
 
         window.speechSynthesis.speak(msg1);
