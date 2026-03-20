@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KidPlearn | NaphatHub</title>
+    
+    <!-- ตั้งค่าให้เป็น Web App -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#4361ee">
+    <link rel="manifest" href="manifest.json">
+
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -36,7 +40,6 @@
         .container { background: var(--card-bg); width: 100%; max-width: 420px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 20px 25px; display: flex; flex-direction: column; max-height: 95vh; transition: background-color 0.3s ease; overflow-y: auto; overflow-x: hidden; }
         .container::-webkit-scrollbar { width: 0px; }
 
-        /* จัดระเบียบ Header ให้ปุ่มกลับ Hub อยู่ด้วยกัน จะได้ไม่ทับ */
         .top-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         .header-group { display: flex; gap: 6px; }
         .header-title { text-align: center; margin-bottom: 15px; width: 100%; }
@@ -45,19 +48,7 @@
         .icon-btn { background: var(--elem-bg); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; color: var(--text-main); transition: transform 0.2s; display: flex; justify-content: center; align-items: center;}
         .icon-btn:active { transform: scale(0.9); }
 
-        /* ปุ่มกลับ Hub (แก้จาก absolute เป็นส่วนหนึ่งของกล่องแล้ว) */
-        .back-link-hub {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            background: var(--elem-bg);
-            padding: 8px 12px;
-            border-radius: 12px;
-            transition: transform 0.2s;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-        }
+        .back-link-hub { color: var(--primary); text-decoration: none; font-weight: 600; background: var(--elem-bg); padding: 8px 12px; border-radius: 12px; transition: transform 0.2s; font-size: 14px; display: flex; align-items: center; }
         .back-link-hub:active { transform: scale(0.95); }
         [data-theme="dark"] .back-link-hub { background: #334155; color: #f8fafc; }
 
@@ -71,7 +62,6 @@
         .item:last-child { border-bottom: none; }
         .item.discount { color: var(--danger); }
         
-        /* ปุ่ม x ลบรายการ */
         .item-delete-btn { background: transparent; border: none; color: var(--text-light); font-size: 14px; cursor: pointer; transition: 0.2s; margin-left: 8px; padding: 2px 5px; border-radius: 6px;}
         .item-delete-btn:hover { background: #fee2e2; color: var(--danger); }
         [data-theme="dark"] .item-delete-btn:hover { background: #450a0a; }
@@ -92,7 +82,6 @@
         .btn-action { background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
         .btn-action:active { transform: scale(0.95); }
 
-        /* Native Inputs (For Manual Mode) */
         .native-input { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-size: 24px; font-weight: 600; outline: none; text-align: right; margin-bottom: 15px; background-color: var(--bg); color: var(--text-main); }
         .native-input:focus { border-color: var(--primary); }
 
@@ -102,6 +91,10 @@
         .btn.success { background-color: var(--success); }
         .btn.outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
         .btn.danger { background-color: var(--danger); }
+
+        /* กล่องแสดงยอดรวมเรียลไทม์ */
+        .live-total-box { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #e0e7ff; color: var(--primary); border-radius: 12px; margin-bottom: 10px; font-weight: 600; font-size: 18px; }
+        [data-theme="dark"] .live-total-box { background: rgba(67, 97, 238, 0.15); color: #818cf8; }
 
         /* Money Buttons */
         .money-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
@@ -134,7 +127,6 @@
 
 <div class="container">
     
-    <!-- จัดโครงสร้าง Header ใหม่ให้อยู่ฝั่งซ้าย-ขวา ไม่ทับกันแน่นอน -->
     <div class="top-controls">
         <a href="../index.html" class="back-link-hub">🔙 กลับ Hub</a>
         
@@ -199,6 +191,12 @@
                 <button class="btn success" onclick="addNormalPrice()">เพิ่มรายการ</button>
                 <button class="btn danger" onclick="clearItems()" style="width: 30%;">ล้างบิล</button>
             </div>
+        </div>
+
+        <!-- กล่องแสดงยอดรวมแบบเรียลไทม์ -->
+        <div class="live-total-box">
+            <span>🛒 ยอดรวมขณะนี้:</span>
+            <span id="liveTotalDisplay">0 ฿</span>
         </div>
 
         <button onclick="goToPayment()" class="btn">รวมเงินทั้งหมด ➔</button>
@@ -281,15 +279,12 @@
     let isManualMode = false;
     let isTTSOn = true;
 
-    // ----- ระบบโหลดเสียงพูด (เพื่อหาเสียงผู้หญิง) -----
     let availableVoices = [];
     function loadVoices() {
         availableVoices = window.speechSynthesis.getVoices();
     }
-    // โหลดเสียงเมื่อเบราว์เซอร์พร้อม
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // ----- ระบบเสียงเอฟเฟกต์ (ตี๊ดๆ) -----
     const globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playGlobalClick() {
         if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
@@ -312,7 +307,6 @@
         if(e.target.tagName === 'BUTTON' || e.target.closest('a')) playGlobalClick();
     });
 
-    // ----- ระบบเสียงพูด (Text-to-Speech) -----
     if(localStorage.getItem('kidplearn_tts') === 'false') { isTTSOn = false; document.getElementById('ttsBtn').innerText = '🔇'; }
     
     function toggleTTS() {
@@ -326,7 +320,10 @@
         if (!isTTSOn || !('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel(); 
 
-        // หาเสียงภาษาไทย โดยเน้นหาเสียงผู้หญิงถ้ามี
+        if (availableVoices.length === 0) {
+            availableVoices = window.speechSynthesis.getVoices();
+        }
+
         let thaiVoices = availableVoices.filter(v => v.lang.includes('th') || v.lang.includes('TH'));
         let preferredVoice = thaiVoices.find(v => v.name.includes('Google') || v.name.includes('Kanya') || v.name.includes('Premwadee')) || thaiVoices[0];
 
@@ -343,13 +340,12 @@
         msg1.onend = function() {
             setTimeout(() => {
                 if(isTTSOn) window.speechSynthesis.speak(msg2);
-            }, 50); // 500ms (เว้นวรรคครึ่งวินาที)
+            }, 500); 
         };
 
         window.speechSynthesis.speak(msg1);
     }
 
-    // ----- ระบบโหมดมืด (Dark Mode) -----
     function toggleTheme() {
         const html = document.documentElement;
         const btn = document.getElementById('themeBtn');
@@ -368,7 +364,6 @@
         document.getElementById('themeBtn').innerText = '☀️';
     }
 
-    // ----- ระบบสลับโหมดคีย์บอร์ด (Manual Mode) -----
     function toggleInputMode() {
         isManualMode = !isManualMode;
         document.getElementById('modeBtn').innerText = isManualMode ? '🖩' : '⌨️';
@@ -381,7 +376,6 @@
     }
     if(localStorage.getItem('kidplearn_input_mode') === 'manual') { toggleInputMode(); }
 
-    // ----- จัดการหน้า UI -----
     function showSection(id) {
         document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -389,7 +383,6 @@
         if (id === 'step-payment' && isManualMode) document.getElementById('manualReceiveInput').focus();
     }
 
-    // ----- ระบบคิดเงิน -----
     function updateDisplay() {
         const pd = document.getElementById('priceDisplay');
         if (currentInput === "") { pd.innerText = "ใส่ราคา..."; pd.classList.add('empty'); } 
@@ -409,7 +402,7 @@
         if (isNaN(price) || price <= 0) { playSound('error'); return; }
         playSound('success');
         
-        pushItem(price, `รายการที่`); // ใส่ชื่อหลอกๆ ไว้ก่อนเดี๋ยวให้ updateItemList เรียงเลขให้
+        pushItem(price, `รายการที่`); 
         if(isManualMode) { let mi = document.getElementById('manualPriceInput'); mi.value = ""; mi.focus(); } 
         else { currentInput = ""; updateDisplay(); }
     }
@@ -427,36 +420,37 @@
         else { currentInput = ""; updateDisplay(); }
     }
 
-    // ฟังก์ชันลบรายการจากปุ่ม x 
     function removeItem(index) {
         playSound('click');
         items.splice(index, 1);
         updateItemList();
     }
 
-    // *ฟังก์ชันอัปเดตลิสต์พร้อมแก้บัครันเลขใหม่*
     function updateItemList() {
         const list = document.getElementById('itemList'); list.innerHTML = ''; totalAmount = 0;
-        if(items.length === 0) { list.innerHTML = '<div class="item" style="color: var(--text-light); justify-content: center;">ยังไม่มีรายการสินค้า</div>'; return; }
         
-        let itemCounter = 1; // ตัวนับรายการสำหรับเรียงเลขใหม่
+        // อัปเดตตัวเลขแสดงยอดรวมเรียลไทม์เป็น 0 บาทถ้าไม่มีรายการ
+        if(items.length === 0) { 
+            list.innerHTML = '<div class="item" style="color: var(--text-light); justify-content: center;">ยังไม่มีรายการสินค้า</div>'; 
+            document.getElementById('liveTotalDisplay').innerText = '0 ฿';
+            return; 
+        }
+        
+        let itemCounter = 1; 
 
         items.forEach((item, index) => {
             totalAmount += item.price;
             let displayPrice = item.price > 0 ? `${item.price.toLocaleString()} ฿` : `- ${Math.abs(item.price).toLocaleString()} ฿`;
             let itemClass = item.price < 0 ? 'item discount' : 'item';
             
-            // เช็คว่าถ้ารายการนั้นเป็นกลุ่ม "รายการที่..." ให้เรียงเลขให้ใหม่
             if (item.name.startsWith('รายการที่')) {
                 item.name = `รายการที่ ${itemCounter}`;
             }
             
-            // ให้นับรายการเฉพาะที่เป็นของบวกเงิน (รวมปุ่มด่วนด้วย) 
             if (item.price > 0) {
                 itemCounter++;
             }
 
-            // แสดงผลรายการพร้อมปุ่ม x 
             list.innerHTML += `
                 <div class="${itemClass}">
                     <span>${item.name}</span> 
@@ -467,6 +461,9 @@
                 </div>`;
         });
         list.scrollTop = list.scrollHeight;
+        
+        // อัปเดตยอดรวมเรียลไทม์ให้แสดงผลบนหน้าจอ
+        document.getElementById('liveTotalDisplay').innerText = totalAmount.toLocaleString() + ' ฿';
     }
 
     function clearItems() {
@@ -478,7 +475,6 @@
         }
     }
 
-    // ----- ระบบรับเงิน -----
     function goToPayment() {
         if (totalAmount <= 0) { playSound('error'); alert('บิลยังเป็น 0 บาทครับ!'); return; }
         playSound('success');
@@ -508,7 +504,6 @@
     }
     function updateReceivedDisplay() { document.getElementById('payReceived').innerText = receivedAmount.toLocaleString() + ' ฿'; }
 
-    // ----- ระบบคิดเงินทอน & บันทึกยอด -----
     function calculateChange() {
         if (receivedAmount < totalAmount) { playSound('error'); alert('รับเงินมาไม่พอครับ! (ขาดอีก ' + (totalAmount - receivedAmount).toLocaleString() + ' บาท)'); return; }
         playSound('success');
@@ -544,11 +539,17 @@
         updateDisplay(); updateItemList(); showSection('step-calculate');
     }
 
-    // ----- ระบบสรุปยอดขาย -----
     function saveToHistory(amount) { let history = JSON.parse(localStorage.getItem('kidplearn_history')) || { bills: 0, total: 0 }; history.bills += 1; history.total += amount; localStorage.setItem('kidplearn_history', JSON.stringify(history)); }
     function openHistory() { let history = JSON.parse(localStorage.getItem('kidplearn_history')) || { bills: 0, total: 0 }; document.getElementById('historyTotal').innerText = history.total.toLocaleString() + ' ฿'; document.getElementById('historyBills').innerText = history.bills.toLocaleString(); document.getElementById('historyModal').classList.add('active'); }
     function closeHistory() { document.getElementById('historyModal').classList.remove('active'); }
     function clearHistory() { playSound('error'); if(confirm('ยืนยันการล้างยอดขายของวันนี้ทั้งหมด? (ไม่สามารถกู้คืนได้)')) { localStorage.setItem('kidplearn_history', JSON.stringify({ bills: 0, total: 0 })); openHistory(); } }
+
+    // เรียกใช้ Service Worker เพื่อให้หน้าเว็บเราเป็น App ติดตั้งลงเครื่องได้
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(function() {
+            console.log('Service Worker Registered');
+        });
+    }
 </script>
 
 </body>
