@@ -1,0 +1,13 @@
+bgm.mp3 (เพลงตอนเล่นเกม) Orchestra Loop by Ncone -- https://freesound.org/s/755107/ -- License: Creative Commons 0
+
+shoot.mp3 (เสียงยิงหรือฟัน) Bash Hit SFX by luminousfridge -- https://freesound.org/s/496192/ -- License: Attribution 4.0
+
+slash.mp3 (เสียงนักดาบ) sword_02.wav by dermotte -- https://freesound.org/s/263011/ -- License: Attribution 4.0
+
+bossHit.mp3 (เสียงอัดบอส) Bonk - [Rpg] 1 by colorsCrimsonTears -- https://freesound.org/s/641894/ -- License: Creative Commons 0
+
+ult.mp3 (เสียงใช้อัลติเมท) Explode - [Rpg] 1 by colorsCrimsonTears -- https://freesound.org/s/641899/ -- License: Creative Commons 0
+
+levelup.mp3 (เสียงเลเวลอัพ) Apply - Rpg by colorsCrimsonTears -- https://freesound.org/s/577961/ -- License: Creative Commons 0
+
+heal.mp3 (เสียงเก็บอาหารฮีลเลือด) Dodge - [Rpg] 1 by colorsCrimsonTears -- https://freesound.org/s/641893/ -- License: Creative Commons 0
