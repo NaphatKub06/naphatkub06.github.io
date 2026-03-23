@@ -106,6 +106,7 @@
                 <button class="glow-btn" onclick="showHowToPlay()">HOW TO PLAY</button>
                 <button class="glow-btn" onclick="showHistory()">HISTORY</button>
                 <button class="glow-btn" onclick="showSettings('MAIN')">SETTINGS</button>
+                <button class="glow-btn" onclick="showCredit()">CREDIT</button>
             </div>
         </div>
 
@@ -149,6 +150,26 @@
                 </table>
                 <p id="noHistoryText" style="color: #888; margin-top: 20px; display: none;">No matches played yet.</p>
                 <button class="glow-btn" style="margin-top: 25px;" onclick="backToMain()">BACK TO MENU</button>
+            </div>
+        </div>
+
+        <!-- Credit Menu -->
+        <div id="creditMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
+            <div class="glass-panel large">
+                <h2 class="gui-header">CREDIT</h2>
+                <div class="tutorial-box">
+                    <h3>🎵 BGM & SFX</h3>
+                    <ul>
+                        <li><b>bgm.mp3 (เพลงตอนเล่นเกม)</b> Orchestra Loop by Ncone -- https://freesound.org/s/755107/ -- License: Creative Commons 0</li>
+                        <li><b>shoot.ogg (เสียงยิงหรือฟัน)</b> Bash Hit SFX by luminousfridge -- https://freesound.org/s/496192/ -- License: Attribution 4.0</li>
+                        <li><b>slash.wav (เสียงนักดาบ)</b> sword_02.wav by dermotte -- https://freesound.org/s/263011/ -- License: Attribution 4.0</li>
+                        <li><b>bossHit.wav (เสียงอัดบอส)</b> Bonk - [Rpg] 1 by colorsCrimsonTears -- https://freesound.org/s/641894/ -- License: Creative Commons 0</li>
+                        <li><b>ult.wav (เสียงใช้อัลติเมท)</b> Explode - [Rpg] 1 by colorsCrimsonTears -- https://freesound.org/s/641899/ -- License: Creative Commons 0</li>
+                        <li><b>levelup.wav (เสียงเลเวลอัพ)</b> Apply - Rpg by colorsCrimsonTears -- https://freesound.org/s/577961/ -- License: Creative Commons 0</li>
+                        <li><b>heal.wav (เสียงเก็บอาหารฮีลเลือด)</b> Dodge - [Rpg] 1 by colorsCrimsonTears -- https://freesound.org/s/641893/ -- License: Creative Commons 0</li>
+                    </ul>
+                </div>
+                <button class="glow-btn" style="margin-top: 15px;" onclick="backToMain()">BACK TO MENU</button>
             </div>
         </div>
 
@@ -338,6 +359,7 @@
         function backToMain() { isGameState = 'MENU'; stopBGM(); showOverlay('mainMenu'); document.getElementById('gameUI').style.display = 'none'; }
         
         function showHowToPlay() { isGameState = 'HOW_TO_PLAY'; showOverlay('howToPlayMenu'); }
+        function showCredit() { isGameState = 'CREDIT'; showOverlay('creditMenu'); }
         
         function showHistory() { 
             isGameState = 'HISTORY'; showOverlay('historyMenu'); 
