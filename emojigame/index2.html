@@ -2,27 +2,16 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EMOJI SURVIVOR | NaphatHub</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
 
         :root { --accent-blue: #00d2ff; --accent-purple: #9d4edd; --danger-red: #ff4757; --text-main: #f1f2f6; --gold: #ffd700; }
-        body { margin: 0; padding: 0; background-color: #0f0f1a; color: var(--text-main); font-family: 'Nunito', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; user-select: none; touch-action: none; -webkit-touch-callout: none; }
-        
-        /* ทำให้ Game Container ยืดหยุ่นตามจอมือถือแนวนอน */
-        #gameContainer { position: relative; width: 100vw; height: 100vh; max-width: 1000px; max-height: 650px; border-radius: 0px; box-shadow: 0 0 50px rgba(0, 210, 255, 0.2); overflow: hidden; background-color: #111; display: flex;}
-        @media (min-width: 1001px) { #gameContainer { border-radius: 20px; } }
-        canvas { display: none; width: 100%; height: 100%; object-fit: cover; cursor: crosshair; }
-
-        /* --- 🔄 แจ้งเตือนบังคับจอแนวนอน (Portrait Warning) --- */
-        #orientationWarning { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f0f1a; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-family: 'Kanit', sans-serif; color: white; }
-        @media screen and (orientation: portrait) {
-            #gameContainer { display: none !important; }
-            .back-link-hub { display: none !important; }
-            #orientationWarning { display: flex; }
-        }
+        body { margin: 0; padding: 0; background-color: #0f0f1a; color: var(--text-main); font-family: 'Nunito', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; user-select: none; }
+        #gameContainer { position: relative; width: 1000px; height: 650px; border-radius: 20px; box-shadow: 0 0 50px rgba(0, 210, 255, 0.2); overflow: hidden; background-color: #111; }
+        canvas { display: none; cursor: crosshair; }
 
         #damageFlash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: inset 0 0 100px rgba(255, 0, 0, 0.8); box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.6); opacity: 0; pointer-events: none; z-index: 8; transition: opacity 0.1s ease-out; }
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; opacity: 1; transition: opacity 0.3s ease; }
@@ -30,107 +19,90 @@
         #mainMenu { background: linear-gradient(-45deg, #1a0b2e, #4b1059, #0f5270, #0a3a47); background-size: 400% 400%; animation: gradientBG 15s ease infinite; }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        .glass-panel { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); backdrop-filter: blur(10px); text-align: center; max-width: 90%; max-height: 90%; overflow-y: auto;}
-        .glass-panel.large { width: 80%; }
-        h1.game-title { font-size: clamp(30px, 6vw, 60px); font-weight: 900; margin-bottom: 20px; background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 10px 20px rgba(0, 210, 255, 0.3); letter-spacing: 2px; }
-        h2.gui-header { color: var(--text-main); font-weight: 700; margin-bottom: 20px; font-size: clamp(20px, 4vw, 30px);}
+        .glass-panel { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); backdrop-filter: blur(10px); text-align: center; }
+        .glass-panel.large { width: 80%; max-height: 80%; overflow-y: auto; }
+        h1.game-title { font-size: 60px; font-weight: 900; margin-bottom: 20px; background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 10px 20px rgba(0, 210, 255, 0.3); letter-spacing: 2px; }
+        h2.gui-header { color: var(--text-main); font-weight: 700; margin-bottom: 20px; }
 
-        .glow-btn { position: relative; padding: 10px 25px; font-size: clamp(12px, 2vw, 16px); font-weight: bold; font-family: 'Nunito', sans-serif; color: white; background: rgba(25, 25, 45, 0.8); border: none; border-radius: 12px; cursor: pointer; overflow: hidden; z-index: 1; margin: 5px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; outline: none; }
+        .glow-btn { position: relative; padding: 12px 30px; font-size: 16px; font-weight: bold; font-family: 'Nunito', sans-serif; color: white; background: rgba(25, 25, 45, 0.8); border: none; border-radius: 12px; cursor: pointer; overflow: hidden; z-index: 1; margin: 8px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; outline: none; }
         .glow-btn::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(45deg, #ff00cc, #3333ff, #00d2ff, #ff00cc); background-size: 400%; z-index: -1; border-radius: 14px; filter: blur(8px); opacity: 0; transition: opacity 0.3s; animation: animateGlow 20s linear infinite; }
         .glow-btn:hover { transform: translateY(-3px); } .glow-btn:hover::before { opacity: 1; }
         .glow-btn::after { content: ''; position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px; background: rgba(25, 25, 45, 0.95); z-index: -1; border-radius: 10px; }
-        .main-btn { padding: 15px 40px; font-size: clamp(16px, 3vw, 20px); }
+        .main-btn { padding: 15px 40px; font-size: 20px; }
         @keyframes animateGlow { 0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; } }
 
         .flex-row { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px; max-width: 850px;}
-        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; width: clamp(100px, 20vw, 140px); padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; backdrop-filter: blur(5px); }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; width: 140px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; backdrop-filter: blur(5px); }
         .card:hover, .card.selected { transform: translateY(-8px); border-color: var(--accent-blue); background: rgba(0, 210, 255, 0.05); box-shadow: 0 10px 20px rgba(0, 210, 255, 0.2);}
-        .card-icon { font-size: clamp(30px, 5vw, 40px); margin-bottom: 5px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));}
-        .card-title { font-weight: bold; font-size: clamp(12px, 2.5vw, 16px); color: var(--accent-blue); margin-bottom: 5px; }
-        .card-desc { font-size: clamp(9px, 1.5vw, 11px); color: #bbb; line-height: 1.3;}
+        .card-icon { font-size: 40px; margin-bottom: 5px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));}
+        .card-title { font-weight: bold; font-size: 16px; color: var(--accent-blue); margin-bottom: 5px; }
+        .card-desc { font-size: 11px; color: #bbb; line-height: 1.3;}
 
-        .slider-container { display: flex; align-items: center; gap: 15px; margin: 15px 0; width: 100%; max-width: 350px; } .slider-label { width: 60px; font-size: 14px; font-weight: bold; text-align: left;} input[type=range] { flex-grow: 1; accent-color: var(--accent-blue); }
+        .slider-container { display: flex; align-items: center; gap: 15px; margin: 15px 0; width: 350px; } .slider-label { width: 60px; font-size: 14px; font-weight: bold; } input[type=range] { flex-grow: 1; accent-color: var(--accent-blue); }
         .key-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); } .key-value { color: var(--accent-purple); font-weight: bold; cursor: pointer; padding: 2px 10px; border-radius: 5px; background: rgba(255,255,255,0.05);} .key-value:hover { background: rgba(157, 78, 221, 0.2); } .key-value.waiting { color: var(--danger-red); animation: blink 1s infinite; }
 
-        .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: clamp(10px, 1.8vw, 14px); }
+        /* History Table Styles */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 14px; }
         .history-table th { color: var(--accent-blue); padding: 10px; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .history-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ccc; }
+        .history-table tr:hover td { background: rgba(255,255,255,0.05); color: white; }
 
-        .tutorial-box { text-align: left; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 15px; font-size: clamp(11px, 2vw, 14px);}
+        /* How to Play Styles */
+        .tutorial-box { text-align: left; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 15px; }
         .tutorial-box h3 { color: var(--accent-purple); margin-top: 0; margin-bottom: 10px;}
         .tutorial-box ul { padding-left: 20px; margin: 0; color: #ddd; }
         .tutorial-box li { margin-bottom: 8px; }
 
         #gameUI { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        .ui-top-left { position: absolute; top: 15px; left: 15px; pointer-events: auto; }
-        .ui-top-right { position: absolute; top: 15px; right: 15px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; }
+        .ui-top-left { position: absolute; top: 20px; left: 20px; pointer-events: auto; }
+        .ui-top-right { position: absolute; top: 20px; right: 20px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; }
         
-        .stat-text { font-size: clamp(14px, 2vw, 18px); font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.8); margin-bottom: 5px;}
-        .bar-wrap { width: clamp(120px, 25vw, 220px); height: 10px; background: rgba(0,0,0,0.5); border-radius: 10px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+        .stat-text { font-size: 18px; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.8); margin-bottom: 5px;}
+        .bar-wrap { width: 220px; height: 10px; background: rgba(0,0,0,0.5); border-radius: 10px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
         .bar-fill { height: 100%; transition: width 0.2s ease; border-radius: 10px;}
         #xpBarFill { background: linear-gradient(90deg, #00d2ff, #3a7bd5); width: 0%; } #hpBarFill { background: linear-gradient(90deg, #ff4757, #ff6b81); width: 100%; } #ultBarFill { background: linear-gradient(90deg, var(--gold), #ffa502); width: 100%; }
 
-        #pauseBtn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: clamp(35px, 6vw, 50px); height: clamp(35px, 6vw, 50px); display: flex; justify-content: center; align-items: center; font-size: clamp(16px, 3vw, 24px); cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 10px; }
+        #pauseBtn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; }
         #pauseBtn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
-        #comboText { font-size: clamp(16px, 4vw, 28px); font-weight: 900; color: #ff9f43; text-shadow: 0 0 10px rgba(255, 159, 67, 0.8); opacity: 0; transition: 0.2s; font-style: italic;}
-        #modeDisplay { font-size: clamp(10px, 1.5vw, 14px); color: #aaa; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        #comboText { font-size: 28px; font-weight: 900; color: #ff9f43; text-shadow: 0 0 10px rgba(255, 159, 67, 0.8); opacity: 0; transition: 0.2s; font-style: italic;}
+        #modeDisplay { font-size: 14px; color: #aaa; margin-bottom: 10px; text-transform: uppercase; font-weight: bold; }
 
-        #bossUI { display: none; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; width: 60%; max-width: 500px; pointer-events: auto;}
-        #bossName { color: var(--danger-red); font-weight: 900; font-size: clamp(14px, 3vw, 24px); text-shadow: 0 0 10px rgba(255, 71, 87, 0.5); margin-bottom: 5px; letter-spacing: 2px;}
-        .boss-bar-wrap { width: 100%; height: clamp(10px, 2vw, 20px); background: rgba(0,0,0,0.7); border: 2px solid rgba(255,255,255,0.2); border-radius: 15px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);}
+        #bossUI { display: none; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; width: 500px; pointer-events: auto;}
+        #bossName { color: var(--danger-red); font-weight: 900; font-size: 24px; text-shadow: 0 0 10px rgba(255, 71, 87, 0.5); margin-bottom: 8px; letter-spacing: 2px;}
+        .boss-bar-wrap { width: 100%; height: 20px; background: rgba(0,0,0,0.7); border: 2px solid rgba(255,255,255,0.2); border-radius: 15px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);}
         #bossHpFill { height: 100%; background: linear-gradient(90deg, #8b0000, #ff4757); width: 100%; transition: width 0.1s; }
-        .hidden { display: none !important; opacity: 0; pointer-events: none; }
+        .hidden { opacity: 0; pointer-events: none; }
 
-        .back-link-hub { position: absolute; top: 20px; left: 20px; color: #f8fafc; text-decoration: none; font-weight: 600; background: #334155; padding: 10px 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 100; transition: transform 0.2s; font-family: 'Kanit', sans-serif;}
+
+        .back-link-hub {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #f8fafc;
+            text-decoration: none;
+            font-weight: 600;
+            background: #334155;
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            transition: transform 0.2s;
+        }
         .back-link-hub:active { transform: scale(0.95); }
 
-        /* --- 🕹️ Mobile Controls UI --- */
-        #mobileControls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; }
-        .mob-element { position: absolute; pointer-events: auto; }
-        #joystickArea { width: 130px; height: 130px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(4px); box-sizing: border-box; touch-action: none; }
-        #joystickStick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: rgba(0, 210, 255, 0.6); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 15px rgba(0, 210, 255, 0.8); pointer-events: none; }
-        .mob-btn { width: 75px; height: 75px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); color: white; font-weight: bold; font-size: 35px; user-select: none; touch-action: none; transition: 0.1s;}
-        .mob-btn:active { transform: scale(0.9); }
-        #btnAimLock.active { background: rgba(255, 71, 87, 0.4); border-color: var(--danger-red); box-shadow: 0 0 20px var(--danger-red); }
-        
-        /* Edit Mode Styles */
-        #editLayoutOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 25; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
-        .edit-msg { color: var(--gold); font-size: clamp(16px, 4vw, 24px); font-weight: bold; margin-bottom: 20px; text-shadow: 0 0 10px #000; pointer-events: none; text-align: center; font-family: 'Kanit', sans-serif;}
-        .edit-element { border: 3px dashed var(--gold) !important; background: rgba(255, 215, 0, 0.2) !important; cursor: move; }
     </style>
 </head>
 <body>
-    <a href="../index.html" class="back-link-hub" id="backHub">🔙 กลับ Hub</a>
-    
-    <div id="orientationWarning">
-        <div style="font-size: 80px; margin-bottom: 20px; animation: spin 2s infinite ease-in-out;">🔄</div>
-        <h2>โปรดหมุนจอเป็นแนวนอน</h2>
-        <p style="color: #aaa;">เกมนี้รองรับการเล่นในมุมมองแนวนอนเท่านั้น<br>เพื่อพื้นที่การเล่นที่กว้างที่สุด</p>
-        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(90deg); } }</style>
-    </div>
-
+    <a href="../index.html" class="back-link-hub">🔙 กลับ Hub</a>
     <div id="gameContainer">
         <div id="damageFlash"></div>
 
-        <div id="deviceSelectMenu" class="overlay" style="background: #0f0f1a; z-index: 100;">
-            <h1 class="game-title" style="font-size: clamp(40px, 8vw, 60px);">SELECT DEVICE</h1>
-            <p style="color: #aaa; margin-bottom: 30px; font-family: 'Kanit', sans-serif;">เลือกอุปกรณ์ที่คุณใช้เล่นในตอนนี้</p>
-            <div class="flex-row">
-                <div class="card" onclick="selectDevice('pc')">
-                    <div class="card-icon">💻</div><div class="card-title">PC / Laptop</div><div class="card-desc">เล่นด้วย Keyboard (W,A,S,D)</div>
-                </div>
-                <div class="card" onclick="selectDevice('mobile')">
-                    <div class="card-icon">📱</div><div class="card-title">Mobile / Tablet</div><div class="card-desc">เล่นด้วยระบบ Touch Screen</div>
-                </div>
-            </div>
-            <a href="../index.html" style="color: #666; text-decoration: none; margin-top: 40px; font-family: 'Kanit', sans-serif;">กลับสู่เมนูหลัก (Hub)</a>
-        </div>
-
-        <div id="mainMenu" class="overlay hidden">
+        <!-- Main Menu -->
+        <div id="mainMenu" class="overlay">
             <h1 class="game-title">EMOJI SURVIVOR</h1>
             <p style="color: #ccc; margin-top: -20px; margin-bottom: 30px; font-weight: bold; letter-spacing: 1px;"></p>
             <button class="glow-btn main-btn" onclick="showModeSelect()">PLAY GAME</button>
-            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center;">
+            <div style="margin-top: 10px;">
                 <button class="glow-btn" onclick="showHowToPlay()">HOW TO PLAY</button>
                 <button class="glow-btn" onclick="showHistory()">HISTORY</button>
                 <button class="glow-btn" onclick="showSettings('MAIN')">SETTINGS</button>
@@ -138,25 +110,17 @@
             </div>
         </div>
 
+        <!-- How To Play Menu -->
         <div id="howToPlayMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
             <div class="glass-panel large">
                 <h2 class="gui-header">HOW TO PLAY</h2>
-                <div class="tutorial-box" id="tutPC">
-                    <h3>💻 Controls (คอมพิวเตอร์)</h3>
+                <div class="tutorial-box">
+                    <h3>🎮 Controls (บังคับตัวละคร)</h3>
                     <ul>
                         <li><b>W, A, S, D</b>: เคลื่อนที่ (Move)</li>
-                        <li><b>Spacebar (Hold)</b>: กดค้างเพื่อล็อกทิศทางการยิง</li>
-                        <li><b>E</b>: ใช้ท่าไม้ตาย (Ultimate) *ต้องรอหลอดเหลืองเต็ม*</li>
-                        <li><b>P</b>: หยุดเกมชั่วคราว</li>
-                    </ul>
-                </div>
-                <div class="tutorial-box" id="tutMobile" style="display: none;">
-                    <h3>📱 Controls (มือถือ/แท็บเล็ต)</h3>
-                    <ul>
-                        <li><b>Joystick (ซ้าย)</b>: ลากเพื่อเคลื่อนที่</li>
-                        <li><b>เป้าเล็ง 🎯 (ขวา)</b>: กดค้าง (Hold) เพื่อล็อกทิศทางการยิง เลิกกดคือปล่อย</li>
-                        <li><b>สายฟ้า ⚡ (ขวา)</b>: แตะเพื่อใช้ท่าไม้ตาย (เมื่อขอบส่องแสง)</li>
-                        <li>*สามารถจัดตำแหน่งปุ่มเองได้ที่เมนู Settings*</li>
+                        <li><b>Spacebar (Hold)</b>: ล็อกทิศทางการยิง (Aim Lock)</li>
+                        <li><b>E</b>: ใช้ท่าไม้ตาย (Ultimate Skill) *ต้องรอหลอดเหลืองเต็ม*</li>
+                        <li><b>P</b>: หยุดเกมชั่วคราว (Pause)</li>
                     </ul>
                 </div>
                 <div class="tutorial-box">
@@ -165,28 +129,31 @@
                         <li>กำจัดศัตรูเพื่อเก็บ <b>เพชร (XP)</b> และเลือกรับสกิลเมื่อเลเวลอัป</li>
                         <li>หากบาดเจ็บ ให้เดินหา <b>อาหาร (🍕🍜🍎)</b> ที่สุ่มดรอปเพื่อฟื้นฟูเลือด</li>
                         <li>บอส 👹 จะโผล่มาทุกๆ <b>เลเวล 10</b> เตรียมท่าไม้ตายไว้ให้พร้อม!</li>
+                        <li>ฆ่ามอนสเตอร์ต่อเนื่องเพื่อสะสม <b>COMBO</b> ยิ่งคอมโบสูง XP ยิ่งคูณเยอะ!</li>
                     </ul>
                 </div>
                 <button class="glow-btn" style="margin-top: 15px;" onclick="backToMain()">BACK TO MENU</button>
             </div>
         </div>
 
+        <!-- History Menu -->
         <div id="historyMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
             <div class="glass-panel large">
                 <h2 class="gui-header">MATCH HISTORY</h2>
-                <div style="overflow-x: auto;">
                 <table class="history-table">
                     <thead>
                         <tr><th>Date & Time</th><th>Mode</th><th>Class</th><th>Level</th><th>Score</th><th>Status</th></tr>
                     </thead>
-                    <tbody id="historyTableBody"></tbody>
+                    <tbody id="historyTableBody">
+                        <!-- JS จะมาใส่ข้อมูลตรงนี้ -->
+                    </tbody>
                 </table>
-                </div>
                 <p id="noHistoryText" style="color: #888; margin-top: 20px; display: none;">No matches played yet.</p>
                 <button class="glow-btn" style="margin-top: 25px;" onclick="backToMain()">BACK TO MENU</button>
             </div>
         </div>
 
+        <!-- Credit Menu -->
         <div id="creditMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
             <div class="glass-panel large">
                 <h2 class="gui-header">CREDIT</h2>
@@ -206,6 +173,7 @@
             </div>
         </div>
 
+        <!-- Mode Select -->
         <div id="modeSelectMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
             <div class="glass-panel">
                 <h2 class="gui-header">SELECT GAME MODE</h2>
@@ -221,6 +189,7 @@
             </div>
         </div>
 
+        <!-- Map Select -->
         <div id="mapSelectMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
             <div class="glass-panel">
                 <h2 class="gui-header">SELECT STAGE</h2>
@@ -232,13 +201,14 @@
             </div>
         </div>
 
+        <!-- Class Select -->
         <div id="charSelectMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
-            <div class="glass-panel large">
+            <div class="glass-panel">
                 <h2 class="gui-header">CHOOSE HERO</h2>
                 <div class="flex-row">
                     <div class="card" id="class-wizard" onclick="selectClass('wizard')"><div class="card-icon">🧙‍♂️</div><div class="card-title">Wizard</div><div class="card-desc">Magic Bolts.</div></div>
-                    <div class="card" id="class-swordman" onclick="selectClass('swordman')"><div class="card-icon">🤺</div><div class="card-title">Swordman</div><div class="card-desc">Melee Slash.</div></div>
-                    <div class="card" id="class-archer" onclick="selectClass('archer')"><div class="card-icon">🧝🏻</div><div class="card-title">Archer</div><div class="card-desc">Pierce Arrow.</div></div>
+                    <div class="card" id="class-swordman" onclick="selectClass('swordman')"><div class="card-icon">⚔️</div><div class="card-title">Swordman</div><div class="card-desc">Melee Slash.</div></div>
+                    <div class="card" id="class-archer" onclick="selectClass('archer')"><div class="card-icon">🏹</div><div class="card-title">Archer</div><div class="card-desc">Pierce Arrow.</div></div>
                     <div class="card" id="class-ninja" onclick="selectClass('ninja')"><div class="card-icon">🥷</div><div class="card-title">Ninja</div><div class="card-desc">Burst Shuriken.</div></div>
                     <div class="card" id="class-cyborg" onclick="selectClass('cyborg')"><div class="card-icon">🤖</div><div class="card-title">Cyborg</div><div class="card-desc">Laser Beam.</div></div>
                     <div class="card" id="class-vampire" onclick="selectClass('vampire')"><div class="card-icon">🧛‍♂️</div><div class="card-title">Vampire</div><div class="card-desc">Lifesteal Bats.</div></div>
@@ -247,14 +217,13 @@
             </div>
         </div>
 
+        <!-- Settings -->
         <div id="settingsMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
             <div class="glass-panel">
                 <h2 class="gui-header">SETTINGS</h2>
                 <div class="slider-container"><span class="slider-label">MUSIC</span><input type="range" id="volumeMusic" min="0" max="100" value="40"></div>
                 <div class="slider-container"><span class="slider-label">SFX</span><input type="range" id="volumeSFX" min="0" max="100" value="70"></div>
-                
-                <div id="settingsPC" style="margin-top: 20px; text-align: left; max-height: 250px; overflow-y: auto;">
-                    <p style="color:#aaa; text-align:center; font-size:12px; margin-top:0;">คลิกเพื่อเปลี่ยนปุ่ม</p>
+                <div style="margin-top: 20px; text-align: left; max-height: 250px; overflow-y: auto;">
                     <div class="key-row"><span class="key-label">Move Up</span><span class="key-value" id="key-up" onclick="startBinding('up')">W</span></div>
                     <div class="key-row"><span class="key-label">Move Down</span><span class="key-value" id="key-down" onclick="startBinding('down')">S</span></div>
                     <div class="key-row"><span class="key-label">Move Left</span><span class="key-value" id="key-left" onclick="startBinding('left')">A</span></div>
@@ -263,29 +232,26 @@
                     <div class="key-row"><span class="key-label">Ultimate Skill</span><span class="key-value" id="key-ult" onclick="startBinding('ult')">E</span></div>
                     <div class="key-row"><span class="key-label">Pause Game</span><span class="key-value" id="key-pause" onclick="startBinding('pause')">P</span></div>
                 </div>
-
-                <div id="settingsMobile" style="display:none; margin-top: 20px;">
-                    <p style="color:#aaa; font-size:12px;">ปรับขนาดปุ่มกด (Scale)</p>
-                    <div class="slider-container"><span class="slider-label" style="font-size:20px; text-align:center;">🔍</span><input type="range" id="mobileScale" min="50" max="150" value="100"></div>
-                    <button class="glow-btn" style="border-color: var(--gold); color: var(--gold); margin-top: 15px;" onclick="enterEditMode()">🛠️ EDIT BUTTON LAYOUT</button>
-                </div>
-
                 <button class="glow-btn" style="margin-top: 25px;" onclick="closeSettings()">SAVE & CLOSE</button>
             </div>
         </div>
 
+        <!-- Pause Menu -->
         <div id="pauseMenu" class="overlay hidden" style="background: rgba(15, 15, 26, 0.7); backdrop-filter: blur(10px);">
             <div class="glass-panel"><h1 class="game-title" style="margin-bottom: 30px;">PAUSED</h1><button class="glow-btn main-btn" onclick="resumeGame()">RESUME</button><br><button class="glow-btn" onclick="showSettings('PAUSE')">SETTINGS</button><br><button class="glow-btn" style="color: var(--danger-red);" onclick="location.reload()">QUIT</button></div>
         </div>
 
+        <!-- Level Up -->
         <div id="levelUpPanel" class="overlay hidden" style="background: rgba(15, 15, 26, 0.8); backdrop-filter: blur(10px);">
-            <div class="glass-panel large"><h2 class="gui-header" style="color: var(--gold); font-size: 30px;">LEVEL UP!</h2><p style="margin-bottom: 20px;">Choose an upgrade</p><div class="flex-row" id="skillOptions"></div></div>
+            <div class="glass-panel"><h2 class="gui-header" style="color: var(--gold); font-size: 30px;">LEVEL UP!</h2><p style="margin-bottom: 20px;">Choose an upgrade</p><div class="flex-row" id="skillOptions"></div></div>
         </div>
 
+        <!-- Game Over -->
         <div id="gameOver" class="overlay hidden" style="background: rgba(15, 15, 26, 0.9); backdrop-filter: blur(10px);">
             <div class="glass-panel"><h1 class="game-title" style="background: linear-gradient(to right, #ff4757, #ff6b81); -webkit-background-clip: text;">YOU DIED</h1><p style="font-size: 20px;">Score: <span id="finalScore" style="color: var(--gold); font-weight:bold;">0</span></p><button class="glow-btn main-btn" style="margin-top: 20px;" onclick="location.reload()">MAIN MENU</button></div>
         </div>
 
+        <!-- Game Win -->
         <div id="gameWin" class="overlay hidden" style="background: rgba(255, 215, 0, 0.1); backdrop-filter: blur(10px);">
             <div class="glass-panel" style="border-color: var(--gold); box-shadow: 0 15px 50px rgba(255, 215, 0, 0.3);">
                 <h1 class="game-title" style="background: linear-gradient(to right, #ffd700, #ffaa00); -webkit-background-clip: text;">VICTORY!</h1>
@@ -300,66 +266,24 @@
                 <div id="modeDisplay">MODE: NORMAL</div>
                 <div class="stat-text">SCORE: <span id="scoreDisplay">0</span> | LVL: <span id="levelDisplay">1</span></div>
                 <div class="bar-wrap" title="XP"><div id="xpBarFill" class="bar-fill"></div></div>
-                <div class="bar-wrap" style="width: 70%; height: 8px;" title="HP"><div id="hpBarFill" class="bar-fill"></div></div>
-                <div class="bar-wrap" style="width: 70%; height: 5px; border-radius: 0;" title="ULT"><div id="ultBarFill" class="bar-fill"></div></div>
+                <div class="bar-wrap" style="width: 150px; height: 8px;" title="HP"><div id="hpBarFill" class="bar-fill"></div></div>
+                <div class="bar-wrap" style="width: 150px; height: 5px; border-radius: 0;" title="ULT"><div id="ultBarFill" class="bar-fill"></div></div>
             </div>
             <div class="ui-top-right"><div id="pauseBtn" onclick="pauseGame()">⏸️</div><div id="comboText">0 COMBO!</div></div>
             <div id="bossUI"><div id="bossName">👹 DEMON KING 👹</div><div class="boss-bar-wrap"><div id="bossHpFill"></div></div></div>
         </div>
-
-        <div id="mobileControls">
-            <div id="joystickArea" class="mob-element"><div id="joystickStick"></div></div>
-            <div id="btnAimLock" class="mob-element mob-btn">🎯</div>
-            <div id="btnUltMobile" class="mob-element mob-btn">⚡</div>
-        </div>
-
-        <div id="editLayoutOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:30; flex-direction:column; justify-content:center; align-items:center; pointer-events:auto;">
-            <h2 style="color: var(--gold); text-shadow: 0 0 10px #000; pointer-events:none; font-family: 'Kanit', sans-serif;">ลากเพื่อจัดวางตำแหน่งปุ่ม</h2>
-            <button class="glow-btn main-btn" style="position:absolute; bottom: 20px; border-color: var(--gold); color: var(--gold);" onclick="exitEditMode()">💾 บันทึกและออก</button>
-        </div>
-
         <canvas id="gameCanvas" width="1000" height="650"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
         
-        // --- 📱 Device Selection & Mode Setup ---
-        let isMobileMode = false;
-        function selectDevice(type) {
-            isMobileMode = (type === 'mobile');
-            document.getElementById('deviceSelectMenu').classList.add('hidden');
-            document.getElementById('mainMenu').classList.remove('hidden');
-            document.getElementById('backHub').style.display = 'block'; // Show back button after device select
-            
-            // สลับการแสดงผลหน้า Setting / HowToPlay ตามอุปกรณ์ที่เลือก
-            if(isMobileMode) {
-                document.getElementById('settingsPC').style.display = 'none';
-                document.getElementById('settingsMobile').style.display = 'block';
-                document.getElementById('tutPC').style.display = 'none';
-                document.getElementById('tutMobile').style.display = 'block';
-                applyMobileLayout(); // โหลด Layout มือถือทันที
-            } else {
-                document.getElementById('settingsPC').style.display = 'block';
-                document.getElementById('settingsMobile').style.display = 'none';
-                document.getElementById('tutPC').style.display = 'block';
-                document.getElementById('tutMobile').style.display = 'none';
-            }
-        }
-        document.getElementById('backHub').style.display = 'none'; // ซ่อนไว้ก่อนตอนเลือกเครื่อง
-
-        // --- 💾 LOCAL STORAGE SYSTEM ---
-        const STORAGE_KEY = 'emojiSurvivorData_Final';
+        // --- 💾 LOCAL STORAGE SYSTEM (Save Settings & History) ---
+        const STORAGE_KEY = 'emojiSurvivorData';
         let gameData = {
             settings: { music: 0.4, sfx: 0.7 },
             keys: { up: 'w', down: 's', left: 'a', right: 'd', lock: ' ', ult: 'e', pause: 'p' },
-            history: [],
-            mobileLayout: {
-                scale: 100,
-                joystick: { left: '15%', top: '65%' }, // ซ้ายล่าง
-                aim: { left: '80%', top: '50%' },      // ขวาบน
-                ult: { left: '85%', top: '75%' }       // ขวาล่าง
-            }
+            history: [] // เก็บประวัติการเล่น
         };
 
         function loadGameData() {
@@ -369,26 +293,36 @@
                 gameData.settings = parsed.settings || gameData.settings;
                 gameData.keys = parsed.keys || gameData.keys;
                 gameData.history = parsed.history || [];
-                gameData.mobileLayout = parsed.mobileLayout || gameData.mobileLayout;
             }
-            soundSettings.music = gameData.settings.music; soundSettings.sfx = gameData.settings.sfx;
+            // นำค่าไปอัปเดตตัวแปรจริง
+            soundSettings.music = gameData.settings.music;
+            soundSettings.sfx = gameData.settings.sfx;
             Object.assign(keyMap, gameData.keys);
-            document.getElementById('mobileScale').value = gameData.mobileLayout.scale;
         }
 
         function saveGameData() {
-            gameData.settings.music = soundSettings.music; gameData.settings.sfx = soundSettings.sfx;
+            gameData.settings.music = soundSettings.music;
+            gameData.settings.sfx = soundSettings.sfx;
             Object.assign(gameData.keys, keyMap);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(gameData));
         }
 
         function addMatchHistory(status) {
-            const now = new Date(); const dateString = now.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
-            gameData.history.unshift({ date: dateString, mode: gameMode.toUpperCase(), hero: currentClass.toUpperCase(), level: gameLevel, score: score, status: status });
-            if (gameData.history.length > 15) gameData.history.pop(); saveGameData();
+            const now = new Date();
+            const dateString = now.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+            gameData.history.unshift({ // ใส่ข้อมูลใหม่ไว้บนสุด
+                date: dateString,
+                mode: gameMode.toUpperCase(),
+                hero: currentClass.toUpperCase(),
+                level: gameLevel,
+                score: score,
+                status: status
+            });
+            if (gameData.history.length > 15) gameData.history.pop(); // เก็บแค่ 15 แมตช์ล่าสุด
+            saveGameData();
         }
 
-        // --- Audio Files ---
+        // --- Audio Files & Throttling ---
         const audioFiles = { bgm: new Audio('bgm.mp3'), shoot: new Audio('shoot.ogg'), slash: new Audio('slash.wav'), monsterHit: new Audio('monsterHit.wav'), playerHit: new Audio('playerHit.wav'), bossHit: new Audio('bossHit.wav'), ult: new Audio('ult.wav'), levelUp: new Audio('levelup.wav'), heal: new Audio('heal.wav'), gameOver: new Audio('gameOver.wav') };
         audioFiles.bgm.loop = true; 
         const soundSettings = { music: 0.4, sfx: 0.7 };
@@ -413,28 +347,33 @@
         window.addEventListener('keydown', (e) => {
             if (isBindingKey) { finishBinding(e.key); e.preventDefault(); return; }
             const keyStr = e.key === ' ' ? ' ' : e.key.toLowerCase(); keysHeld[keyStr] = true;
-            if (isGameState === 'PLAYING' && !isMobileMode) {
+            if (isGameState === 'PLAYING') {
                 if (keyStr === keyMap.pause) pauseGame();
                 if (keyStr === keyMap.ult && player.ultTimer >= player.ultMaxCooldown && !player.ultActive) activateUltimate();
-            } else if (isGameState === 'PAUSED' && keyStr === keyMap.pause && !isMobileMode) resumeGame();
+            } else if (isGameState === 'PAUSED' && keyStr === keyMap.pause) resumeGame();
             if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
         });
         window.addEventListener('keyup', (e) => { keysHeld[e.key === ' ' ? ' ' : e.key.toLowerCase()] = false; });
 
         function showOverlay(id) { document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden')); if(id) document.getElementById(id).classList.remove('hidden'); }
-        function backToMain() { isGameState = 'MENU'; stopBGM(); showOverlay('mainMenu'); document.getElementById('gameUI').style.display = 'none'; document.getElementById('mobileControls').style.display='none'; }
+        function backToMain() { isGameState = 'MENU'; stopBGM(); showOverlay('mainMenu'); document.getElementById('gameUI').style.display = 'none'; }
         
         function showHowToPlay() { isGameState = 'HOW_TO_PLAY'; showOverlay('howToPlayMenu'); }
         function showCredit() { isGameState = 'CREDIT'; showOverlay('creditMenu'); }
         
         function showHistory() { 
             isGameState = 'HISTORY'; showOverlay('historyMenu'); 
-            const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = '';
-            if (gameData.history.length === 0) { document.getElementById('noHistoryText').style.display = 'block'; } else {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            if (gameData.history.length === 0) {
+                document.getElementById('noHistoryText').style.display = 'block';
+            } else {
                 document.getElementById('noHistoryText').style.display = 'none';
                 gameData.history.forEach(h => {
-                    const row = document.createElement('tr'); const color = h.status === 'VICTORY' ? 'var(--gold)' : '#ff4757';
-                    row.innerHTML = `<td>${h.date}</td><td>${h.mode}</td><td>${h.hero}</td><td>${h.level}</td><td>${h.score}</td><td style="color: ${color}; font-weight: bold;">${h.status}</td>`; tbody.appendChild(row);
+                    const row = document.createElement('tr');
+                    const color = h.status === 'VICTORY' ? 'var(--gold)' : '#ff4757';
+                    row.innerHTML = `<td>${h.date}</td><td>${h.mode}</td><td>${h.hero}</td><td>${h.level}</td><td>${h.score}</td><td style="color: ${color}; font-weight: bold;">${h.status}</td>`;
+                    tbody.appendChild(row);
                 });
             }
         }
@@ -449,125 +388,94 @@
         function selectClass(className) { currentClass = className; document.querySelectorAll('#charSelectMenu .card').forEach(c => c.classList.remove('selected')); document.getElementById('class-' + className).classList.add('selected'); document.getElementById('startBtn').disabled = false; }
         
         function showSettings(fromState) { lastSettingsState = fromState; isGameState = 'SETTINGS'; showOverlay('settingsMenu'); updateSettingsUI(); }
-        function closeSettings() { saveGameData(); if (lastSettingsState === 'MAIN') backToMain(); else resumeFromPauseUI(); }
+        function closeSettings() { 
+            saveGameData(); // บันทึก Settings เมื่อกดปิด
+            if (lastSettingsState === 'MAIN') backToMain(); else resumeFromPauseUI(); 
+        }
         
-        function pauseGame() { if (isGameState !== 'PLAYING') return; isGameState = 'PAUSED'; showOverlay('pauseMenu'); document.getElementById('mobileControls').style.display='none'; }
+        function pauseGame() { if (isGameState !== 'PLAYING') return; isGameState = 'PAUSED'; showOverlay('pauseMenu'); }
         function resumeGame() { if (isGameState !== 'PAUSED') return; resumeFromPauseUI(); }
-        function resumeFromPauseUI() { isGameState = 'PLAYING'; showOverlay(null); document.getElementById('gameUI').style.display = 'block'; if(isMobileMode) document.getElementById('mobileControls').style.display='block'; gameLoop(); }
+        function resumeFromPauseUI() { isGameState = 'PLAYING'; showOverlay(null); document.getElementById('gameUI').style.display = 'block'; gameLoop(); }
         function formatKey(key) { return key === ' ' ? 'Space' : key.toUpperCase(); }
         function updateSettingsUI() { document.getElementById('volumeMusic').value = soundSettings.music * 100; document.getElementById('volumeSFX').value = soundSettings.sfx * 100; for (let id in keyMap) if(document.getElementById('key-' + id)) document.getElementById('key-' + id).innerText = formatKey(keyMap[id]); }
         document.getElementById('volumeMusic').addEventListener('input', (e) => { soundSettings.music = e.target.value / 100; updateAudioVolumes(); }); document.getElementById('volumeSFX').addEventListener('input', (e) => { soundSettings.sfx = e.target.value / 100; updateAudioVolumes(); });
         function startBinding(keyId) { if (isBindingKey) return; isBindingKey = keyId; const valSpan = document.getElementById('key-' + keyId); valSpan.innerText = '...'; valSpan.classList.add('waiting'); }
         function finishBinding(newKey) { keyMap[isBindingKey] = newKey === ' ' ? ' ' : newKey.toLowerCase(); isBindingKey = null; updateSettingsUI(); document.querySelectorAll('.key-value').forEach(s => s.classList.remove('waiting')); }
 
-        // --- 📱 MOBILE CONTROLS & EDIT LAYOUT LOGIC ---
-        let joyDx = 0, joyDy = 0; let joystickActive = false; let joyTouchId = null; let mobileAimLocked = false;
-        
-        const joyArea = document.getElementById('joystickArea'); const joyStick = document.getElementById('joystickStick');
-        const btnAim = document.getElementById('btnAimLock'); const btnUlt = document.getElementById('btnUltMobile');
-
-        function applyMobileLayout() {
-            const ml = gameData.mobileLayout; const scale = ml.scale / 100;
-            joyArea.style.left = ml.joystick.left; joyArea.style.top = ml.joystick.top; joyArea.style.transform = `scale(${scale})`;
-            btnAim.style.left = ml.aim.left; btnAim.style.top = ml.aim.top; btnAim.style.transform = `scale(${scale})`;
-            btnUlt.style.left = ml.ult.left; btnUlt.style.top = ml.ult.top; btnUlt.style.transform = `scale(${scale})`;
-        }
-        
-        document.getElementById('mobileScale').addEventListener('input', (e) => { gameData.mobileLayout.scale = e.target.value; applyMobileLayout(); });
-
-        // Joystick Event
-        joyArea.addEventListener('touchstart', (e) => { e.preventDefault(); if(joystickActive || isGameState!=='PLAYING' || isEditMode) return; const touch = e.changedTouches[0]; joyTouchId = touch.identifier; joystickActive = true; updateJoystick(touch); }, {passive: false});
-        joyArea.addEventListener('touchmove', (e) => { e.preventDefault(); if(!joystickActive || isEditMode) return; for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joyTouchId) updateJoystick(e.changedTouches[i]); } }, {passive: false});
-        const endJoy = (e) => { for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joyTouchId) { joystickActive = false; joyTouchId = null; joyDx = 0; joyDy = 0; joyStick.style.transform = `translate(-50%, -50%)`; } } };
-        joyArea.addEventListener('touchend', endJoy); joyArea.addEventListener('touchcancel', endJoy);
-
-        function updateJoystick(touch) {
-            const rect = joyArea.getBoundingClientRect(); const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
-            let dx = touch.clientX - cx; let dy = touch.clientY - cy; const dist = Math.hypot(dx, dy); const maxDist = rect.width/2 - 25;
-            if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
-            joyStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-            if (dist > 5) { joyDx = dx / maxDist; joyDy = dy / maxDist; } else { joyDx=0; joyDy=0; }
-        }
-
-        // Action Buttons (Hold for Aim)
-        btnAim.addEventListener('touchstart', (e)=>{ e.preventDefault(); if(isGameState==='PLAYING' && !isEditMode){ mobileAimLocked = true; btnAim.classList.add('active'); } }, {passive:false});
-        const releaseAim = (e)=>{ e.preventDefault(); if(isGameState==='PLAYING' && !isEditMode){ mobileAimLocked = false; btnAim.classList.remove('active'); } };
-        btnAim.addEventListener('touchend', releaseAim); btnAim.addEventListener('touchcancel', releaseAim);
-
-        btnUlt.addEventListener('touchstart', (e)=>{ e.preventDefault(); if(isGameState==='PLAYING' && !isEditMode && player.ultTimer>=player.ultMaxCooldown && !player.ultActive) activateUltimate(); }, {passive:false});
-
-        // Edit Layout Logic
-        let isEditMode = false; let draggedEl = null; let dragOffsetX = 0; let dragOffsetY = 0;
-        function enterEditMode() {
-            isEditMode = true; document.getElementById('settingsMenu').classList.add('hidden');
-            document.getElementById('mobileControls').style.display = 'block'; document.getElementById('mobileControls').style.pointerEvents = 'auto';
-            document.getElementById('editLayoutOverlay').style.display = 'flex';
-            [joyArea, btnAim, btnUlt].forEach(el => { el.classList.add('edit-element'); });
-        }
-        function exitEditMode() {
-            isEditMode = false; document.getElementById('mobileControls').style.pointerEvents = 'none'; document.getElementById('editLayoutOverlay').style.display = 'none';
-            [joyArea, btnAim, btnUlt].forEach(el => { el.classList.remove('edit-element'); });
-            
-            // Save to %
-            const w = window.innerWidth; const h = window.innerHeight;
-            gameData.mobileLayout.joystick.left = (joyArea.getBoundingClientRect().left / w * 100) + '%'; gameData.mobileLayout.joystick.top = (joyArea.getBoundingClientRect().top / h * 100) + '%';
-            gameData.mobileLayout.aim.left = (btnAim.getBoundingClientRect().left / w * 100) + '%'; gameData.mobileLayout.aim.top = (btnAim.getBoundingClientRect().top / h * 100) + '%';
-            gameData.mobileLayout.ult.left = (btnUlt.getBoundingClientRect().left / w * 100) + '%'; gameData.mobileLayout.ult.top = (btnUlt.getBoundingClientRect().top / h * 100) + '%';
-            
-            saveGameData(); document.getElementById('mobileControls').style.display = 'none'; document.getElementById('settingsMenu').classList.remove('hidden');
-        }
-        document.addEventListener('touchstart', (e) => { if(isEditMode) { const t = e.target.closest('.edit-element'); if(t) { draggedEl = t; const r = t.getBoundingClientRect(); dragOffsetX = e.touches[0].clientX - r.left; dragOffsetY = e.touches[0].clientY - r.top; } } }, {passive:false});
-        document.addEventListener('touchmove', (e) => { if(isEditMode && draggedEl) { e.preventDefault(); draggedEl.style.left = (e.touches[0].clientX - dragOffsetX) + 'px'; draggedEl.style.top = (e.touches[0].clientY - dragOffsetY) + 'px'; } }, {passive:false});
-        document.addEventListener('touchend', () => { draggedEl = null; });
-
         // --- Game Variables ---
         let score = 0; let frameCount = 0; let gameLevel = 1; let xp = 0; let nextXpLevel = 10;
         let enemies = []; let bullets = []; let currentXpGems = []; let particles = []; let foods = []; let floatingTexts = [];
         let playerAttackTimer = 0; let prevPlayerHp = 100;
         let comboCount = 0; let comboTimer = 0; let shakeTime = 0; let shakeMag = 0;
-        let camX = 0; let camY = 0; let spawnedBossLevels = new Set();
+        let camX = 0; let camY = 0;
+        let spawnedBossLevels = new Set();
 
         const player = { 
             x: 0, y: 0, speed: 3, size: 20, maxHp: 100, hp: 100, emoji: '🧙‍♂️', facingDir: {x: 1, y: 0}, 
             bulletCount: 1, shootDelay: 30, slashSize: 55, slashArc: 1.8, pickupRadius: 30, regenRate: 0,
-            ultTimer: 600, ultMaxCooldown: 600, ultActive: false, ultDuration: 0, orbitals: 0, aura: 0, smite: 0
+            ultTimer: 600, ultMaxCooldown: 600, ultActive: false, ultDuration: 0,
+            orbitals: 0, aura: 0
         };
         
         const CLASS_DATA = { 
-            wizard: { emoji: '🧙‍♂️', speed: 3.5, maxHp: 100, type: 'remote', atkSpd: 30 }, swordman: { emoji: '🤺', speed: 3.2, maxHp: 150, type: 'melee', atkSpd: 30 },
-            archer: { emoji: '🧝🏻', speed: 4.2, maxHp: 80, type: 'pierce', atkSpd: 20 }, ninja: { emoji: '🥷', speed: 4.5, maxHp: 90, type: 'burst', atkSpd: 35 },
-            cyborg: { emoji: '🤖', speed: 3.0, maxHp: 120, type: 'laser', atkSpd: 40 }, vampire: { emoji: '🧛‍♂️', speed: 3.4, maxHp: 110, type: 'lifesteal', atkSpd: 25 }
+            wizard: { emoji: '🧙‍♂️', speed: 3.5, maxHp: 100, type: 'remote', atkSpd: 30 }, 
+            swordman: { emoji: '🤺', speed: 3.2, maxHp: 150, type: 'melee', atkSpd: 30 },
+            archer: { emoji: '🧝🏻', speed: 4.2, maxHp: 80, type: 'pierce', atkSpd: 20 },
+            ninja: { emoji: '🥷', speed: 4.5, maxHp: 90, type: 'burst', atkSpd: 35 },
+            cyborg: { emoji: '🤖', speed: 3.0, maxHp: 120, type: 'laser', atkSpd: 40 },
+            vampire: { emoji: '🧛‍♂️', speed: 3.4, maxHp: 110, type: 'lifesteal', atkSpd: 25 }
         };
 
         const MAP_DATA = { grass: { bg: '#2c3e50', grid: '#34495e', enemy: '🧟', eSpeed: 1, eHp: 5 }, lava: { bg: '#2c0e0e', grid: '#4a1515', enemy: '👺', eSpeed: 1.3, eHp: 8 } };
         const FOOD_TYPES = ['🍕', '🍜', '🍎', '🍗'];
 
         const SKILL_POOL = {
-            wizard: [ { id: 'multi', name: 'Magic Split', icon: '🔵💨', action: () => player.bulletCount++ } ], swordman: [ { id: 'slash', name: 'Giant Sword', icon: '⚔️💥', action: () => player.slashSize += 15 } ],
-            archer: [ { id: 'pierce', name: 'Twin Arrows', icon: '💘💘', action: () => player.bulletCount++ } ], ninja: [ { id: 'burst', name: 'Shadow Clone', icon: '❄️💨', action: () => player.bulletCount++ } ],
-            cyborg: [ { id: 'beam', name: 'Plasma Upgrade', icon: '⚡🔋', action: () => player.slashSize += 20 } ], vampire: [ { id: 'bat', name: 'Swarm', icon: '🦇🩸', action: () => player.bulletCount++ } ],
+            wizard: [ { id: 'multi', name: 'Magic Split', icon: '🔵💨', action: () => player.bulletCount++ } ],
+            swordman: [ { id: 'slash', name: 'Giant Sword', icon: '⚔️💥', action: () => player.slashSize += 15 } ],
+            archer: [ { id: 'pierce', name: 'Twin Arrows', icon: '💘💘', action: () => player.bulletCount++ } ],
+            ninja: [ { id: 'burst', name: 'Shadow Clone', icon: '❄️💨', action: () => player.bulletCount++ } ],
+            cyborg: [ { id: 'beam', name: 'Plasma Upgrade', icon: '⚡🔋', action: () => player.slashSize += 20 } ],
+            vampire: [ { id: 'bat', name: 'Swarm', icon: '🦇🩸', action: () => player.bulletCount++ } ],
             common: [
-                { id: 'haste', name: 'Haste', icon: '⏳', action: () => player.shootDelay *= 0.8 }, { id: 'speed', name: 'Sprint Boots', icon: '👟', action: () => player.speed *= 1.15 }, 
-                { id: 'heal', name: 'Heal Potion', icon: '❤️', action: () => player.hp = Math.min(player.maxHp, player.hp + 50) }, { id: 'magnet', name: 'Magnet', icon: '🧲', action: () => player.pickupRadius += 40 },
-                { id: 'maxhp', name: 'Vitality', icon: '🛡️', action: () => { player.maxHp += 30; player.hp += 30; } }, { id: 'orbital', name: 'Orbital Stars', icon: '💫', action: () => player.orbitals++ },
-                { id: 'aura', name: 'Fire Aura', icon: '🔥', action: () => player.aura++ }, { id: 'smite', name: 'Smite', icon: '⚡', action: () => { player.smite = (player.smite||0) + 1; } }
+                { id: 'haste', name: 'Haste', icon: '⏳', action: () => player.shootDelay *= 0.8 },
+                { id: 'speed', name: 'Sprint Boots', icon: '👟', action: () => player.speed *= 1.15 }, 
+                { id: 'heal', name: 'Heal Potion', icon: '❤️', action: () => player.hp = Math.min(player.maxHp, player.hp + 50) },
+                { id: 'magnet', name: 'Magnet', icon: '🧲', action: () => player.pickupRadius += 40 },
+                { id: 'maxhp', name: 'Vitality', icon: '🛡️', action: () => { player.maxHp += 30; player.hp += 30; } },
+                { id: 'orbital', name: 'Orbital Stars', icon: '💫', action: () => player.orbitals++ },
+                { id: 'aura', name: 'Fire Aura', icon: '🔥', action: () => player.aura++ },
+                { id: 'smite', name: 'Smite', icon: '⚡', action: () => { player.smite = (player.smite||0) + 1; } }
             ]
         };
 
         function triggerShake(time, magnitude) { shakeTime = time; shakeMag = magnitude; }
         function spawnFloatingText(x, y, text, isCrit) { floatingTexts.push({ x: x + (Math.random()-0.5)*20, y: y - 20, text: text, life: 30, isCrit: isCrit, color: isCrit ? '#ffd700' : '#ffffff' }); }
 
-        function startGame() { if (!currentClass || !currentMap || !gameMode) return; isGameState = 'PLAYING'; showOverlay(null); document.getElementById('gameUI').style.display = 'block'; if(isMobileMode) document.getElementById('mobileControls').style.display = 'block'; canvas.style.display = 'block'; resetGame(); gameLoop(); }
+        function startGame() { if (!currentClass || !currentMap || !gameMode) return; isGameState = 'PLAYING'; showOverlay(null); document.getElementById('gameUI').style.display = 'block'; canvas.style.display = 'block'; resetGame(); gameLoop(); }
 
         function resetGame() {
-            score = 0; gameLevel = 1; xp = 0; nextXpLevel = 10; frameCount = 0; comboCount = 0; comboTimer = 0; spawnedBossLevels.clear();
+            score = 0; gameLevel = 1; xp = 0; nextXpLevel = 10; frameCount = 0; comboCount = 0; comboTimer = 0;
+            spawnedBossLevels.clear();
             const cData = CLASS_DATA[currentClass];
-            player.x = 0; player.y = 0; player.maxHp = cData.maxHp; player.hp = cData.maxHp; prevPlayerHp = player.hp; player.speed = cData.speed; player.emoji = cData.emoji; player.bulletCount = 1; player.shootDelay = cData.atkSpd; player.slashSize = 55; playerAttackTimer = 0; player.pickupRadius = 30; player.regenRate = 0; player.ultTimer = 0; player.ultActive = false; player.orbitals = 0; player.aura = 0; player.smite = 0;
+            player.x = 0; player.y = 0; player.maxHp = cData.maxHp; player.hp = cData.maxHp; prevPlayerHp = player.hp;
+            player.speed = cData.speed; player.emoji = cData.emoji; player.bulletCount = 1; player.shootDelay = cData.atkSpd;
+            player.slashSize = 55; playerAttackTimer = 0; player.pickupRadius = 30; player.regenRate = 0;
+            player.ultTimer = 0; player.ultActive = false; player.orbitals = 0; player.aura = 0; player.smite = 0;
             enemies = []; bullets = []; currentXpGems = []; particles = []; foods = []; floatingTexts = []; activeBoss = null;
-            document.getElementById('modeDisplay').innerText = `MODE: ${gameMode}`; document.getElementById('bossUI').style.display = 'none'; updateUI();
+            document.getElementById('modeDisplay').innerText = `MODE: ${gameMode}`;
+            document.getElementById('bossUI').style.display = 'none'; updateUI();
         }
 
-        function activateUltimate() { player.ultActive = true; player.ultTimer = 0; playSound('ult'); triggerShake(15, 5); if (currentClass === 'wizard') player.ultDuration = 120; else if (currentClass === 'swordman') player.ultDuration = 180; else if (currentClass === 'archer') player.ultDuration = 90; else if (currentClass === 'ninja') player.ultDuration = 100; else if (currentClass === 'cyborg') player.ultDuration = 60; else if (currentClass === 'vampire') player.ultDuration = 30; }
+        function activateUltimate() {
+            player.ultActive = true; player.ultTimer = 0; playSound('ult'); triggerShake(15, 5);
+            if (currentClass === 'wizard') player.ultDuration = 120;
+            else if (currentClass === 'swordman') player.ultDuration = 180;
+            else if (currentClass === 'archer') player.ultDuration = 90;
+            else if (currentClass === 'ninja') player.ultDuration = 100; 
+            else if (currentClass === 'cyborg') player.ultDuration = 60; 
+            else if (currentClass === 'vampire') player.ultDuration = 30; 
+        }
+
         function calculateDamage(baseDmg) { let isCrit = Math.random() < 0.15; return { dmg: isCrit ? baseDmg * 2 : baseDmg, isCrit: isCrit }; }
 
         function gameLoop() {
@@ -577,17 +485,13 @@
             if (comboTimer > 0) { comboTimer--; document.getElementById('comboText').style.opacity = comboCount > 1 ? '1' : '0'; document.getElementById('comboText').innerText = `${comboCount} COMBO!`; if (comboTimer <= 0) comboCount = 0; } else { document.getElementById('comboText').style.opacity = '0'; }
 
             let dx = 0; let dy = 0;
-            if (isMobileMode && joystickActive) { dx = joyDx; dy = joyDy; } else if(!isMobileMode) {
-                if (keysHeld[keyMap.up]) dy -= 1; if (keysHeld[keyMap.down]) dy += 1;
-                if (keysHeld[keyMap.left]) dx -= 1; if (keysHeld[keyMap.right]) dx += 1;
-                if (dx !== 0 || dy !== 0) { const length = Math.hypot(dx, dy); dx /= length; dy /= length; }
-            }
-
+            if (keysHeld[keyMap.up]) dy -= 1; if (keysHeld[keyMap.down]) dy += 1;
+            if (keysHeld[keyMap.left]) dx -= 1; if (keysHeld[keyMap.right]) dx += 1;
             if (dx !== 0 || dy !== 0) {
+                const length = Math.hypot(dx, dy); const moveX = dx / length; const moveY = dy / length;
                 const currentSpeed = (player.ultActive && (currentClass === 'swordman' || currentClass === 'ninja')) ? player.speed * 2 : player.speed;
-                player.x += dx * currentSpeed; player.y += dy * currentSpeed;
-                const isAimLocked = isMobileMode ? mobileAimLocked : keysHeld[keyMap.lock];
-                if (!isAimLocked) player.facingDir = {x: dx, y: dy};
+                player.x += moveX * currentSpeed; player.y += moveY * currentSpeed;
+                if (!keysHeld[keyMap.lock]) player.facingDir = {x: moveX, y: moveY};
             }
 
             let sX = 0, sY = 0; if (shakeTime > 0) { sX = (Math.random() - 0.5) * shakeMag; sY = (Math.random() - 0.5) * shakeMag; shakeTime--; }
@@ -615,23 +519,39 @@
             if (gameLevel > 0 && gameLevel % 10 === 0 && !spawnedBossLevels.has(gameLevel) && frameCount % 60 === 0) {
                 spawnedBossLevels.add(gameLevel); 
                 if (gameMode === 'normal' && gameLevel === 100) {
-                    const bossEmojis = ['👹', '👿', '💀']; for(let b=0; b<3; b++) { enemies.push({ x: player.x + (b-1)*150, y: player.y - 400, speed: mData.eSpeed + 2, size: 60, hp: 10000, maxHp: 10000, emoji: bossEmojis[b], isBoss: true, age: 0 }); }
+                    const bossEmojis = ['👹', '👿', '💀'];
+                    for(let b=0; b<3; b++) { enemies.push({ x: player.x + (b-1)*150, y: player.y - 400, speed: mData.eSpeed + 2, size: 60, hp: 10000, maxHp: 10000, emoji: bossEmojis[b], isBoss: true, age: 0 }); }
                     playSound('ult'); triggerShake(60, 25);
-                } else { enemies.push({ x: player.x, y: player.y - 600, speed: mData.eSpeed + (gameLevel * 0.02), size: 50, hp: gameLevel * 60, maxHp: gameLevel * 60, emoji: '👹', isBoss: true, age: 0 }); playSound('ult'); triggerShake(20, 10); }
+                } else {
+                    enemies.push({ x: player.x, y: player.y - 600, speed: mData.eSpeed + (gameLevel * 0.02), size: 50, hp: gameLevel * 60, maxHp: gameLevel * 60, emoji: '👹', isBoss: true, age: 0 });
+                    playSound('ult'); triggerShake(20, 10);
+                }
             }
 
             if (canSpawnEnemies && frameCount % 300 === 0) foods.push({ x: player.x + (Math.random()-0.5)*1200, y: player.y + (Math.random()-0.5)*1200, emoji: FOOD_TYPES[Math.floor(Math.random()*FOOD_TYPES.length)] });
 
+            // === 💥 BUG FIX: ล็อคพู่กันเพื่อป้องกัน Canvas State Leak ===
             if (player.aura > 0) { 
-                const auraRadius = 100 + (player.aura * 10); ctx.save(); ctx.fillStyle = `rgba(255, 100, 0, ${0.1 + Math.sin(frameCount*0.1)*0.05})`; ctx.beginPath(); ctx.arc(player.x - camX, player.y - camY, auraRadius, 0, Math.PI*2); ctx.fill(); ctx.restore(); 
-                if(frameCount % 30 === 0) { enemies.forEach(e => { if(Math.hypot(e.x - player.x, e.y - player.y) < auraRadius + e.size) { let hd = calculateDamage(player.aura * 5); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; } }); }
+                const auraRadius = 100 + (player.aura * 10);
+                ctx.save(); // ล็อคพู่กัน
+                ctx.fillStyle = `rgba(255, 100, 0, ${0.1 + Math.sin(frameCount*0.1)*0.05})`;
+                ctx.beginPath(); ctx.arc(player.x - camX, player.y - camY, auraRadius, 0, Math.PI*2); ctx.fill();
+                ctx.restore(); // คืนค่าพู่กัน
+                
+                if(frameCount % 30 === 0) { 
+                    enemies.forEach(e => { if(Math.hypot(e.x - player.x, e.y - player.y) < auraRadius + e.size) { let hd = calculateDamage(player.aura * 5); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; } });
+                }
             }
             if (player.orbitals > 0) { 
-                const orbDist = 60; const orbSpeed = 0.05 + (player.orbitals*0.01); ctx.save(); ctx.font = "20px Arial";
+                const orbDist = 60; const orbSpeed = 0.05 + (player.orbitals*0.01);
+                ctx.save(); ctx.font = "20px Arial";
                 for(let i=0; i<player.orbitals; i++) {
-                    const angle = (frameCount * orbSpeed) + (i * (Math.PI*2/player.orbitals)); const ox = player.x + Math.cos(angle)*orbDist; const oy = player.y + Math.sin(angle)*orbDist; ctx.fillText('💫', ox - camX - 10, oy - camY + 10);
+                    const angle = (frameCount * orbSpeed) + (i * (Math.PI*2/player.orbitals));
+                    const ox = player.x + Math.cos(angle)*orbDist; const oy = player.y + Math.sin(angle)*orbDist;
+                    ctx.fillText('💫', ox - camX - 10, oy - camY + 10);
                     if(frameCount % 10 === 0) { enemies.forEach(e => { if(Math.hypot(e.x - ox, e.y - oy) < 20 + e.size) { let hd = calculateDamage(10); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; }}); }
-                } ctx.restore();
+                }
+                ctx.restore();
             }
             if (player.smite > 0 && frameCount % Math.max(10, 60 - (player.smite*5)) === 0 && enemies.length > 0) {
                 const target = enemies[Math.floor(Math.random()*enemies.length)];
@@ -645,15 +565,20 @@
                 playerAttackTimer = 0; const attackDir = player.facingDir; const baseAngle = Math.atan2(attackDir.y, attackDir.x); let cType = CLASS_DATA[currentClass].type;
                 if (cType === 'remote' || cType === 'pierce' || cType === 'lifesteal') {
                     const isPierce = currentClass === 'archer';
-                    for(let i=0; i<player.bulletCount; i++) { const angle = baseAngle + (i - (player.bulletCount-1)/2) * 0.15; bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * (isPierce?15:10), vy: Math.sin(angle) * (isPierce?15:10), size: 10, type: cType, icon: isPierce?'💘':(cType==='lifesteal'?'🦇':'🔵') }); } playSound('shoot');
+                    for(let i=0; i<player.bulletCount; i++) { const angle = baseAngle + (i - (player.bulletCount-1)/2) * 0.15; bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * (isPierce?15:10), vy: Math.sin(angle) * (isPierce?15:10), size: 10, type: cType, icon: isPierce?'💘':(cType==='lifesteal'?'🦇':'🔵') }); }
+                    playSound('shoot');
                 } else if (cType === 'burst') {
-                    const count = player.bulletCount + 3; for(let i=0; i<count; i++) { const angle = baseAngle + (i * (Math.PI*2/count)); bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12, size: 8, type: 'burst', icon: '❄️' }); } playSound('shoot');
+                    const count = player.bulletCount + 3; for(let i=0; i<count; i++) { const angle = baseAngle + (i * (Math.PI*2/count)); bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12, size: 8, type: 'burst', icon: '❄️' }); }
+                    playSound('shoot');
                 } else if (cType === 'laser') {
-                    ctx.save(); ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)'; ctx.lineWidth = 10 + player.slashSize/10; ctx.beginPath(); ctx.moveTo(player.x - camX, player.y - camY); const endX = player.x + Math.cos(baseAngle) * 800; const endY = player.y + Math.sin(baseAngle) * 800; ctx.lineTo(endX - camX, endY - camY); ctx.stroke(); ctx.restore();
-                    enemies.forEach(e => { const angleToEnemy = Math.atan2(e.y - player.y, e.x - player.x); if(Math.abs(normalizeAngle(angleToEnemy - baseAngle)) < 0.2 && Math.hypot(e.x-player.x, e.y-player.y) < 800) { let hd = calculateDamage(e.isBoss ? 5 : 15); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; } }); playSound('shoot');
+                    ctx.save(); ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)'; ctx.lineWidth = 10 + player.slashSize/10; ctx.beginPath(); ctx.moveTo(player.x - camX, player.y - camY);
+                    const endX = player.x + Math.cos(baseAngle) * 800; const endY = player.y + Math.sin(baseAngle) * 800; ctx.lineTo(endX - camX, endY - camY); ctx.stroke(); ctx.restore();
+                    enemies.forEach(e => { const angleToEnemy = Math.atan2(e.y - player.y, e.x - player.x); if(Math.abs(normalizeAngle(angleToEnemy - baseAngle)) < 0.2 && Math.hypot(e.x-player.x, e.y-player.y) < 800) { let hd = calculateDamage(e.isBoss ? 5 : 15); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; } });
+                    playSound('shoot');
                 } else if (cType === 'melee') {
                     drawSlashEffect(player.x - camX, player.y - camY, baseAngle, player.slashSize, player.slashArc);
-                    enemies.forEach(e => { if (Math.hypot(e.x - player.x, e.y - player.y) < player.slashSize + e.size) { if (Math.abs(normalizeAngle(Math.atan2(e.y - player.y, e.x - player.x) - baseAngle)) < player.slashArc / 2) { let hd = calculateDamage(e.isBoss ? 15 : 20); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; } } }); playSound('slash');
+                    enemies.forEach(e => { if (Math.hypot(e.x - player.x, e.y - player.y) < player.slashSize + e.size) { if (Math.abs(normalizeAngle(Math.atan2(e.y - player.y, e.x - player.x) - baseAngle)) < player.slashArc / 2) { let hd = calculateDamage(e.isBoss ? 15 : 20); e.hp_dmg = hd.dmg; e.hp_crit = hd.isCrit; } } });
+                    playSound('slash');
                 }
             }
 
@@ -676,7 +601,10 @@
                 else if (p.type === 'trail') { ctx.save(); ctx.font = "30px Arial"; ctx.globalAlpha = p.life/10; ctx.fillText('🥷', p.x - camX - 15, p.y - camY + 15); ctx.restore(); }
                 if (p.life <= 0) particles.splice(i, 1);
             }
-            ctx.globalAlpha = 1.0; ctx.fillStyle = 'white';
+            
+            // การวาดภาพทั้งหมดหลังจากจุดนี้ มั่นใจได้เลยว่าพู่กันไม่มีความโปร่งแสงแน่นอน
+            ctx.globalAlpha = 1.0; 
+            ctx.fillStyle = 'white';
 
             ctx.font = "16px Arial";
             for (let i = currentXpGems.length - 1; i >= 0; i--) {
@@ -684,7 +612,8 @@
                 if (dist < player.pickupRadius + 50) { gem.x += (player.x - gem.x) * 0.1; gem.y += (player.y - gem.y) * 0.1; }
                 if (dist < player.size + 15) { 
                     xp += gem.amt * (1 + (comboCount * 0.05)); currentXpGems.splice(i, 1); 
-                    if (!(gameMode === 'normal' && gameLevel >= 100)) { if (xp >= nextXpLevel) handleLevelUp(); } updateUI(); 
+                    if (!(gameMode === 'normal' && gameLevel >= 100)) { if (xp >= nextXpLevel) handleLevelUp(); }
+                    updateUI(); 
                 }
             }
 
@@ -703,16 +632,19 @@
             }
 
             let bossCount = 0; let totalBossHp = 0; let totalBossMax = 0;
+
             for (let i = enemies.length - 1; i >= 0; i--) {
                 let e = enemies[i]; e.age++;
                 if(e.isBoss) { bossCount++; totalBossHp += e.hp; totalBossMax += e.maxHp; }
 
                 if (e.hp_dmg) { 
                     e.hp -= e.hp_dmg; spawnFloatingText(e.x, e.y, Math.floor(e.hp_dmg), e.hp_crit); e.hp_dmg = 0; 
+                    
                     if (e.hp <= 0) {
                         currentXpGems.push({x: e.x, y: e.y, amt: e.isBoss ? 50 : 1}); comboCount++; comboTimer = 180;
-                        if (e.isBoss) { score += 500; createExplosion(e.x, e.y, 250, 60); triggerShake(40, 20); playSound('bossHit'); } 
-                        else { 
+                        if (e.isBoss) { 
+                            score += 500; createExplosion(e.x, e.y, 250, 60); triggerShake(40, 20); playSound('bossHit'); 
+                        } else { 
                             if(e.special === 'bomb') { createExplosion(e.x, e.y, 80, 20); playSound('bossHit'); if(Math.hypot(player.x-e.x, player.y-e.y)<80) player.hp -= 15; }
                             else if (e.special === 'rock') { enemies.push({x: e.x-15, y: e.y, speed: 1.5, size: 10, hp: 10, maxHp: 10, emoji: '🪨', isBoss:false}); enemies.push({x: e.x+15, y: e.y, speed: 1.5, size: 10, hp: 10, maxHp: 10, emoji: '🪨', isBoss:false}); }
                             else createExplosion(e.x, e.y, 25, 8); 
@@ -724,26 +656,42 @@
                 let angle = Math.atan2(player.y - e.y, player.x - e.x);
                 if (e.special === 'ghost' && e.age % 180 === 0 && Math.hypot(player.x-e.x, player.y-e.y) > 100) { e.x = player.x + (Math.random()-0.5)*200; e.y = player.y + (Math.random()-0.5)*200; } 
                 e.x += Math.cos(angle) * e.speed; e.y += Math.sin(angle) * e.speed;
+                if (e.special === 'bat') { e.x += Math.cos(angle + Math.PI/2) * Math.sin(e.age*0.1) * 3; e.y += Math.sin(angle + Math.PI/2) * Math.sin(e.age*0.1) * 3; }
+
                 ctx.font = e.isBoss ? "70px Arial" : (e.size>20?"35px Arial":"24px Arial"); ctx.fillText(e.emoji, e.x - camX - (e.isBoss?35:12), e.y - camY + (e.isBoss?25:12));
                 
-                if (Math.hypot(player.x - e.x, player.y - e.y) < player.size + e.size) { if (!(player.ultActive && (currentClass === 'swordman' || currentClass === 'ninja'))) { player.hp -= (e.isBoss ? 3 : 0.8); playSound('playerHit'); } }
+                if (Math.hypot(player.x - e.x, player.y - e.y) < player.size + e.size) { 
+                    if (!(player.ultActive && (currentClass === 'swordman' || currentClass === 'ninja'))) { player.hp -= (e.isBoss ? 3 : 0.8); playSound('playerHit'); }
+                }
             }
 
             if (bossCount > 0) {
-                document.getElementById('bossUI').style.display = 'block'; document.getElementById('bossHpFill').style.width = (totalBossHp / totalBossMax * 100) + '%';
-                if(gameMode === 'normal' && gameLevel === 100) document.getElementById('bossName').innerText = "💀 THE ENDBRINGER TRIO 💀"; else document.getElementById('bossName').innerText = "👹 DEMON KING 👹";
+                document.getElementById('bossUI').style.display = 'block';
+                document.getElementById('bossHpFill').style.width = (totalBossHp / totalBossMax * 100) + '%';
+                if(gameMode === 'normal' && gameLevel === 100) document.getElementById('bossName').innerText = "💀 THE ENDBRINGER TRIO 💀";
+                else document.getElementById('bossName').innerText = "👹 DEMON KING 👹";
             } else {
                 document.getElementById('bossUI').style.display = 'none';
                 if (gameMode === 'normal' && gameLevel >= 100 && spawnedBossLevels.has(100)) { gameWin(); return; }
             }
 
-            for(let i = floatingTexts.length - 1; i >= 0; i--) { let ft = floatingTexts[i]; ft.y -= 1.5; ft.life--; ctx.save(); ctx.fillStyle = ft.color; ctx.globalAlpha = Math.max(0, ft.life / 30); ctx.font = ft.isCrit ? "900 24px Nunito" : "bold 18px Nunito"; ctx.fillText(ft.text, ft.x - camX, ft.y - camY); ctx.restore(); if(ft.life <= 0) floatingTexts.splice(i, 1); }
+            // --- BUG FIX: วาดตัวหนังสือเด้งแบบล็อคพู่กันด้วย ---
+            for(let i = floatingTexts.length - 1; i >= 0; i--) {
+                let ft = floatingTexts[i]; ft.y -= 1.5; ft.life--; 
+                ctx.save(); // ล็อค
+                ctx.fillStyle = ft.color; 
+                ctx.globalAlpha = Math.max(0, ft.life / 30); 
+                ctx.font = ft.isCrit ? "900 24px Nunito" : "bold 18px Nunito"; 
+                ctx.fillText(ft.text, ft.x - camX, ft.y - camY); 
+                ctx.restore(); // คืนค่า
+                if(ft.life <= 0) floatingTexts.splice(i, 1);
+            }
+
             if (player.hp < prevPlayerHp) { const flash = document.getElementById('damageFlash'); flash.style.opacity = '1'; setTimeout(() => flash.style.opacity = '0', 100); triggerShake(5, 5); }
             prevPlayerHp = player.hp; updateUI(); if (player.hp <= 0) gameOver();
 
             const pScreenX = player.x - camX; const pScreenY = player.y - camY;
-            const isAimLocked = isMobileMode ? mobileAimLocked : keysHeld[keyMap.lock];
-            ctx.save(); ctx.translate(pScreenX, pScreenY); ctx.rotate(Math.atan2(player.facingDir.y, player.facingDir.x)); ctx.beginPath(); ctx.moveTo(35, 0); ctx.lineTo(20, -10); ctx.lineTo(25, 0); ctx.lineTo(20, 10); ctx.closePath(); ctx.fillStyle = isAimLocked ? '#ff4757' : '#00d2ff'; ctx.fill(); if (isAimLocked) { ctx.strokeStyle = 'rgba(255, 71, 87, 0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, player.size + 10, 0, Math.PI * 2); ctx.stroke(); } ctx.restore();
+            ctx.save(); ctx.translate(pScreenX, pScreenY); ctx.rotate(Math.atan2(player.facingDir.y, player.facingDir.x)); ctx.beginPath(); ctx.moveTo(35, 0); ctx.lineTo(20, -10); ctx.lineTo(25, 0); ctx.lineTo(20, 10); ctx.closePath(); ctx.fillStyle = keysHeld[keyMap.lock] ? '#ff4757' : '#00d2ff'; ctx.fill(); if (keysHeld[keyMap.lock]) { ctx.strokeStyle = 'rgba(255, 71, 87, 0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, player.size + 10, 0, Math.PI * 2); ctx.stroke(); } ctx.restore();
 
             const walkShake = (dx !== 0 || dy !== 0) ? Math.sin(frameCount * 0.3) * 3 : 0; ctx.font = "30px Arial"; ctx.fillText(player.emoji, pScreenX - 15, pScreenY + 15 + walkShake);
             requestAnimationFrame(gameLoop);
@@ -766,15 +714,19 @@
             document.getElementById('scoreDisplay').innerText = score; document.getElementById('levelDisplay').innerText = gameLevel; document.getElementById('finalScore').innerText = score; 
             document.getElementById('xpBarFill').style.width = (gameMode==='normal'&&gameLevel>=100) ? '100%' : Math.min(100, (xp / nextXpLevel * 100)) + '%'; 
             document.getElementById('hpBarFill').style.width = Math.max(0, (player.hp / player.maxHp * 100)) + '%'; document.getElementById('ultBarFill').style.width = Math.min(100, (player.ultTimer / player.ultMaxCooldown * 100)) + '%';
-            document.getElementById('ultBarFill').style.background = (player.ultTimer >= player.ultMaxCooldown) ? 'linear-gradient(90deg, #ffd700, #fff)' : 'rgba(255,255,255,0.2)';
-            
-            if(isMobileMode) {
-                const ultBtn = document.getElementById('btnUltMobile');
-                if(player.ultTimer >= player.ultMaxCooldown) ultBtn.style.boxShadow = '0 0 20px var(--gold)'; else ultBtn.style.boxShadow = 'none';
-            }
+            document.getElementById('ultBarFill').style.background = (player.ultTimer >= player.ultMaxCooldown) ? 'linear-gradient(90deg, #ffd700, #fff)' : '#555';
         }
-        function gameOver() { isGameState = 'GAME_OVER'; stopBGM(); playSound('gameOver'); addMatchHistory('DEFEAT'); showOverlay('gameOver'); if(isMobileMode) document.getElementById('mobileControls').style.display = 'none'; }
-        function gameWin() { isGameState = 'GAME_WIN'; stopBGM(); playSound('levelUp'); document.getElementById('winScore').innerText = score; addMatchHistory('VICTORY'); showOverlay('gameWin'); if(isMobileMode) document.getElementById('mobileControls').style.display = 'none'; }
+        function gameOver() { 
+            isGameState = 'GAME_OVER'; stopBGM(); playSound('gameOver'); 
+            addMatchHistory('DEFEAT'); // บันทึกประวัติว่าตาย
+            showOverlay('gameOver'); 
+        }
+        function gameWin() { 
+            isGameState = 'GAME_WIN'; stopBGM(); playSound('levelUp'); 
+            document.getElementById('winScore').innerText = score; 
+            addMatchHistory('VICTORY'); // บันทึกประวัติว่าชนะ!
+            showOverlay('gameWin'); 
+        }
     </script>
 </body>
 </html>
