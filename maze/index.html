@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Breaker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;500;700&display=swap');
+
+        :root {
+            --bg-color: #0f0f13;
+            --primary: #00f0ff;
+            --secondary: #ff0055;
+            --text: #ffffff;
+            --coin: #ffdd00;
+            --panel-bg: rgba(20, 20, 30, 0.85);
+            --warp: #b500ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; user-select: none; }
+        body { background-color: var(--bg-color); color: var(--text); overflow: hidden; margin: 0; }
+
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            background-color: var(--bg-color); z-index: 10;
+        }
+
+        .screen.active { display: flex; }
+
+        #game-screen.active {
+            display: flex; flex-direction: row; justify-content: center; align-items: stretch;
+            gap: 20px; padding: 20px;
+        }
+
+        h1 { font-size: 3.5rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 0 20px var(--primary); color: var(--primary); }
+        
+        .start-btn {
+            padding: 20px 60px; font-size: 1.8rem; font-weight: 700; background: transparent; color: var(--primary);
+            border: 3px solid var(--primary); border-radius: 15px; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase;
+        }
+        .start-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 30px var(--primary); transform: scale(1.05); }
+        .start-btn:active { transform: scale(0.95); }
+
+        /* --- Panels --- */
+        .side-panel {
+            width: 260px; background: var(--panel-bg);
+            border: 2px solid #333; border-radius: 20px; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7); z-index: 50; flex-shrink: 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px;
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label { font-size: 0.9rem; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        .stat-value { font-size: 1.6rem; font-weight: bold; }
+
+        .stage-text { color: #b500ff; text-shadow: 0 0 10px #b500ff; }
+        .score-text { color: #ffffff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .coin-text { color: var(--coin); text-shadow: 0 0 10px var(--coin); }
+        .status-text { color: #00ff66; text-shadow: 0 0 10px #00ff66; font-size: 1.2rem;}
+
+        /* --- Combo & Inventory UI --- */
+        #combo-box {
+            padding: 15px 10px; border-radius: 12px; text-align: center;
+            background: rgba(255, 170, 0, 0.1); border: 1px solid rgba(255, 170, 0, 0.3);
+            transition: all 0.3s ease; opacity: 0;
+        }
+        #combo-box.active {
+            opacity: 1; background: rgba(255, 170, 0, 0.2); border-color: #ffaa00;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); animation: pulseCombo 0.4s alternate infinite;
+        }
+        #combo-display { font-size: 2.2rem; font-weight: bold; color: #ffaa00; text-shadow: 0 0 15px #ffaa00; }
+        @keyframes pulseCombo { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+        .inv-item {
+            position: relative; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05);
+            border: 2px solid #333; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 12px; opacity: 0.4; filter: grayscale(1);
+        }
+        .inv-item.available { opacity: 1; filter: grayscale(0); border-color: #555; }
+        .inv-item.available:hover { transform: scale(1.02); background: rgba(255,255,255,0.1); border-color: #888; }
+        .inv-item.active-use { border-color: var(--primary); box-shadow: 0 0 15px var(--primary); background: rgba(0, 240, 255, 0.1); }
+        .inv-item.active-breaker { border-color: var(--secondary); box-shadow: 0 0 15px var(--secondary); background: rgba(255, 0, 85, 0.1); }
+        .inv-item.active-warp { border-color: var(--warp); box-shadow: 0 0 15px var(--warp); background: rgba(181, 0, 255, 0.1); }
+
+        .inv-icon { font-size: 1.8rem; }
+        .inv-name { font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; }
+        .inv-desc { font-size: 0.7rem; color: #aaa; }
+        .inv-hotkey { position: absolute; top: 5px; right: 8px; font-size: 0.75rem; color: #666; font-weight: bold;}
+        .inv-count {
+            position: absolute; right: 12px; bottom: 5px; font-size: 1.4rem; font-weight: 900;
+            font-style: italic; color: #fff; text-shadow: 2px 2px 4px #000;
+        }
+
+        .cam-btn {
+            background: rgba(255,255,255,0.05); border: 2px solid #555; border-radius: 12px;
+            color: #fff; padding: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+            text-align: center; margin-top: auto; font-weight: bold; letter-spacing: 1px;
+        }
+        .cam-btn:hover { background: rgba(255,255,255,0.15); border-color: #888; }
+
+        /* --- Canvas & Game Elements --- */
+        #game-container { 
+            flex-grow: 1; display: flex; justify-content: center; align-items: center; 
+            position: relative; overflow: hidden; border-radius: 15px;
+            border: 2px solid #333; background-color: #15151a;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+        
+        .shake { animation: smashShake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes smashShake {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-10px, 8px); }
+            40% { transform: translate(10px, -8px); }
+            60% { transform: translate(-6px, 4px); }
+            80% { transform: translate(6px, -4px); }
+        }
+
+        canvas {
+            display: block;
+        }
+        
+        .aiming-warp { cursor: crosshair !important; }
+
+        #pause-screen { background-color: rgba(15, 15, 19, 0.85); backdrop-filter: blur(5px); }
+
+        #stage-clear-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 255, 102, 0.1); display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        #stage-clear-overlay h2 { font-size: 5rem; color: #00ff66; text-shadow: 0 0 30px #00ff66; text-transform: uppercase; animation: popIn 0.5s ease-out; }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+
+        .hub-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #aaa;
+            background: transparent;
+            border: 2px solid #555;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+        }
+        .hub-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen" class="screen active">       
+        <a href="../index.html" class="hub-btn">🔙 กลับ Hub</a>
+        <h1>MAZE BREAKER</h1>
+        <p style="margin-bottom: 30px; color: #aaa; font-size: 1.1rem; text-align: center; line-height: 1.6;">
+            [WASD / Arrow] สไลด์ | [P / ESC] หยุดเกม<br>
+            [1, 2, 3] ใช้ไอเทม | [C] สลับมุมกล้อง
+        </p>
+        <button class="start-btn" onclick="initGame()">PLAY NOW</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        
+        <div id="left-panel" class="side-panel">
+            <h2 style="color: #555; text-align: center; letter-spacing: 2px; font-size: 1.2rem;">STATUS</h2>
+            <div class="stat-box">
+                <div class="stat-label">STAGE</div>
+                <div id="stage-display" class="stat-value stage-text">1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">SCORE</div>
+                <div id="score-counter" class="stat-value score-text">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">COINS</div>
+                <div class="stat-value coin-text">🪙 <span id="coin-counter">0</span></div>
+            </div>
+            <div class="stat-box" style="margin-top: auto; border-color: #ffaa00; background: rgba(255, 170, 0, 0.05);">
+                <div class="stat-label" style="color: #ffaa00;">QUEST</div>
+                <div id="quest-status" class="stat-value status-text" style="color: #ffaa00;">หา 🔑</div>
+            </div>
+        </div>
+        
+        <div id="game-container">
+            <canvas id="mazeCanvas"></canvas>
+        </div>
+
+        <div id="right-panel" class="side-panel">
+            <h2 style="color: #555; text-align: center; letter-spacing: 2px; font-size: 1.2rem;">INVENTORY</h2>
+            
+            <div id="inv-magnet" class="inv-item" onclick="useItem('magnet')">
+                <span class="inv-icon">🧲</span>
+                <div>
+                    <div class="inv-name" style="color: var(--primary);">MAGNET</div>
+                    <div class="inv-desc">ดูดเหรียญรอบตัว</div>
+                </div>
+                <div class="inv-hotkey">[1]</div>
+                <div id="count-magnet" class="inv-count">x0</div>
+            </div>
+
+            <div id="inv-breaker" class="inv-item" onclick="useItem('breaker')">
+                <span class="inv-icon">💥</span>
+                <div>
+                    <div class="inv-name" style="color: var(--secondary);">BREAKER</div>
+                    <div class="inv-desc">พุ่งทะลวงกำแพง</div>
+                </div>
+                <div class="inv-hotkey">[2]</div>
+                <div id="count-breaker" class="inv-count">x0</div>
+            </div>
+
+            <div id="inv-warp" class="inv-item" onclick="useItem('warp')">
+                <span class="inv-icon">🌀</span>
+                <div>
+                    <div class="inv-name" style="color: var(--warp);">WARP</div>
+                    <div class="inv-desc">คลิกเพื่อวาร์ป</div>
+                </div>
+                <div class="inv-hotkey">[3]</div>
+                <div id="count-warp" class="inv-count">x0</div>
+            </div>
+
+            <div id="combo-box">
+                <div class="stat-label" style="color: #ffaa00;">🔥 COMBO</div>
+                <div id="combo-display">x<span id="combo-count">1</span></div>
+            </div>
+
+            <div class="cam-btn" onclick="toggleCamera()">
+                🎥 TOGGLE CAMERA [C]
+            </div>
+        </div>
+
+    </div>
+
+    <div id="pause-screen" class="screen">
+        <h1 style="color: #ffaa00; text-shadow: 0 0 20px #ffaa00;">PAUSED</h1>
+        <button class="start-btn" onclick="togglePause()" style="margin-bottom: 15px;">RESUME</button>
+        <button class="start-btn" onclick="goHome()" style="background: transparent; border-color: #555; color: #888; font-size: 1.2rem; padding: 10px 30px;">QUIT TO MENU</button>
+    </div>
+
+    <div id="stage-clear-overlay">
+        <h2>CLEAR!</h2>
+    </div>
+
+<script>
+    // --- Audio System ---
+    let audioCtx;
+    let isSoundOn = false;
+    let bgmInterval;
+    let beatStep = 0;
+
+    const melody = [440, 0, 440, 523.25, 659.25, 0, 659.25, 587.33, 523.25, 0, 523.25, 392, 440, 440, 0, 0];
+    const bass = [220, 0, 220, 0, 261.63, 0, 261.63, 0, 196, 0, 196, 0, 220, 0, 220, 0];
+
+    function initAudio() {
+        if (audioCtx) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            isSoundOn = true;
+        } catch (error) {}
+    }
+
+    function playTone(freq, type, duration, vol = 0.1) {
+        if (!isSoundOn || !audioCtx) return;
+        try {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    function startBGM() {
+        if (!isSoundOn || !audioCtx) return;
+        clearInterval(bgmInterval);
+        beatStep = 0;
+        bgmInterval = setInterval(() => {
+            let mNote = melody[beatStep % melody.length];
+            let bNote = bass[beatStep % bass.length];
+            if (mNote > 0) playTone(mNote, 'square', 0.1, 0.02); 
+            if (bNote > 0) playTone(bNote, 'sawtooth', 0.15, 0.04); 
+            beatStep++;
+        }, 130); 
+    }
+    function stopBGM() { clearInterval(bgmInterval); }
+
+    function playSound(action) {
+        if (!isSoundOn) return;
+        switch(action) {
+            case 'slide': playTone(600, 'sine', 0.1, 0.05); break; 
+            case 'hitWall': playTone(100, 'square', 0.15, 0.1); break; 
+            case 'brake': playTone(300, 'triangle', 0.1, 0.1); break; 
+            case 'coin': playTone(1200, 'sine', 0.1, 0.1); setTimeout(()=>playTone(1600, 'sine', 0.1, 0.1), 60); break; 
+            case 'key': playTone(800, 'square', 0.1, 0.2); setTimeout(()=>playTone(1000, 'square', 0.2, 0.2), 150); break;
+            case 'powerup': playTone(600, 'sine', 0.1, 0.1); setTimeout(()=>playTone(900, 'square', 0.1, 0.1), 100); setTimeout(()=>playTone(1200, 'sine', 0.2, 0.1), 200); break;
+            case 'smash': playTone(150, 'sawtooth', 0.4, 0.4); setTimeout(()=>playTone(100, 'square', 0.2, 0.4), 50); break; 
+            case 'warp': playTone(900, 'triangle', 0.2, 0.2); setTimeout(()=>playTone(400, 'triangle', 0.3, 0.2), 100); break;
+            case 'clear': playTone(500, 'sine', 0.1, 0.2); setTimeout(()=>playTone(800, 'sine', 0.2, 0.2), 150); setTimeout(()=>playTone(1200, 'sine', 0.4, 0.2), 300); break;
+        }
+    }
+
+    // --- Game Logic Variables ---
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+    const gameContainer = document.getElementById('game-container');
+    
+    let maze = [], coins = [], powerups = [], trails = [], particles = [], floatingTexts = [], portals = [];
+    let cols, rows;
+    const baseCellSize = 60; // ขนาดตายตัวสำหรับวาด เพื่อให้กล้องซูมเข้าออกได้สมูท
+    
+    let player = { logX: 0, logY: 0, drawX: 0, drawY: 0, targetX: 0, targetY: 0, isMoving: false };
+    let keyItem = { x: 0, y: 0, collected: false };
+    let exitPortal = { x: 0, y: 0 };
+    
+    let stage = 1, score = 0, coinsCollected = 0;
+    let isPlaying = false, isPaused = false, animationId;
+    let comboMultiplier = 1, comboTimer = 0;
+
+    // Camera System
+    let isZoomedIn = true; // โหมดเริ่มต้น ซูมตามตัว
+    let camera = { x: 0, y: 0, zoom: 1 };
+    let camTarget = { x: 0, y: 0, zoom: 1 };
+
+    // Inventory System
+    let inventory = { magnet: 0, breaker: 0, warp: 0 };
+    let activeBuffs = { magnet: 0, breaker: false };
+    let isAimingWarp = false;
+
+    function updateInventoryUI() {
+        const types = ['magnet', 'breaker', 'warp'];
+        types.forEach(type => {
+            const el = document.getElementById(`inv-${type}`);
+            const countEl = document.getElementById(`count-${type}`);
+            countEl.innerText = `x${inventory[type]}`;
+            
+            if (inventory[type] > 0) el.classList.add('available');
+            else el.classList.remove('available');
+
+            el.classList.remove('active-use', 'active-breaker', 'active-warp');
+            if (type === 'magnet' && activeBuffs.magnet > 0) el.classList.add('active-use');
+            if (type === 'breaker' && activeBuffs.breaker) el.classList.add('active-breaker');
+            if (type === 'warp' && isAimingWarp) el.classList.add('active-warp');
+        });
+    }
+
+    function useItem(type) {
+        if (inventory[type] <= 0 || !isPlaying || isPaused || player.isMoving) return;
+
+        if (type === 'magnet' && activeBuffs.magnet <= 0) {
+            inventory.magnet--; activeBuffs.magnet = 400; playSound('powerup');
+        } else if (type === 'breaker' && !activeBuffs.breaker) {
+            inventory.breaker--; activeBuffs.breaker = true; playSound('powerup');
+        } else if (type === 'warp' && !isAimingWarp) {
+            isAimingWarp = true; canvas.classList.add('aiming-warp');
+            addFloatingText(player.drawX, player.drawY, "CLICK TO WARP!", varColor('warp'));
+        }
+        updateInventoryUI();
+    }
+
+    function toggleCamera() {
+        isZoomedIn = !isZoomedIn;
+    }
+
+    function varColor(type) {
+        if(type==='magnet') return '#00f0ff';
+        if(type==='breaker') return '#ff0055';
+        if(type==='warp') return '#b500ff';
+        return '#ffffff';
+    }
+
+    // --- Effects ---
+    function spawnParticles(x, y, color, count, speedMax) {
+        for(let i=0; i<count; i++) {
+            particles.push({
+                x: x, y: y, vx: (Math.random() - 0.5) * speedMax, vy: (Math.random() - 0.5) * speedMax,
+                alpha: 1, color: color, size: Math.random() * 4 + 2
+            });
+        }
+    }
+
+    function addFloatingText(x, y, text, color) {
+        floatingTexts.push({ x: x, y: y, text: text, color: color, alpha: 1, life: 50 });
+    }
+
+    function addScore(basePoint, x, y) {
+        let finalPoint = basePoint * comboMultiplier;
+        score += finalPoint; document.getElementById('score-counter').innerText = score;
+        addFloatingText(x, y, `+${finalPoint}`, '#ffffff');
+        
+        comboMultiplier++; comboTimer = 180; 
+        document.getElementById('combo-count').innerText = comboMultiplier;
+        document.getElementById('combo-box').classList.add('active');
+    }
+
+    // --- Core Systems ---
+    function initGame() {
+        initAudio();
+        document.getElementById('menu-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        
+        stage = 1; score = 0; coinsCollected = 0; comboMultiplier = 1; comboTimer = 0;
+        inventory = { magnet: 0, breaker: 0, warp: 0 }; 
+        isZoomedIn = true;
+        
+        document.getElementById('score-counter').innerText = score;
+        document.getElementById('coin-counter').innerText = coinsCollected;
+        document.getElementById('combo-box').classList.remove('active');
+        
+        loadStage();
+        isPlaying = true; isPaused = false;
+        startBGM(); gameLoop();
+    }
+
+    function updateCanvasSize() {
+        canvas.width = gameContainer.clientWidth;
+        canvas.height = gameContainer.clientHeight;
+    }
+
+    // อัปเดตขนาดเมื่อย่อขยายหน้าต่าง
+    window.addEventListener('resize', () => {
+        if(isPlaying) updateCanvasSize();
+    });
+
+    function loadStage() {
+        let baseDims = 12 + (stage * 2); if (baseDims > 30) baseDims = 30;
+        cols = baseDims; rows = baseDims;
+
+        updateCanvasSize();
+
+        document.getElementById('stage-display').innerText = stage;
+        document.getElementById('quest-status').innerText = "หา 🔑";
+        document.getElementById('quest-status').style.color = "#ffaa00";
+
+        player = { logX: 0, logY: 0, drawX: 0, drawY: 0, targetX: 0, targetY: 0, isMoving: false };
+        
+        // ให้กล้องเริ่มที่ตัวผู้เล่นทันที
+        camera.x = baseCellSize/2; camera.y = baseCellSize/2; camera.zoom = 1;
+
+        activeBuffs.breaker = false; isAimingWarp = false;
+        canvas.classList.remove('aiming-warp');
+        
+        updateInventoryUI();
+
+        trails = []; particles = []; floatingTexts = []; keyItem.collected = false;
+
+        generateMaze(); placeItems();
+    }
+
+    function nextStage() {
+        isPlaying = false; playSound('clear');
+        score += 1000 * stage; document.getElementById('score-counter').innerText = score;
+        const overlay = document.getElementById('stage-clear-overlay');
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.display = 'none'; stage++; loadStage(); isPlaying = true; }, 1500);
+    }
+
+    function togglePause() {
+        if (!isPlaying && !isPaused) return; 
+        isPaused = !isPaused; const pauseUI = document.getElementById('pause-screen');
+        if (isPaused) { pauseUI.classList.add('active'); stopBGM(); } 
+        else { pauseUI.classList.remove('active'); startBGM(); }
+    }
+
+    function goHome() {
+        isPaused = false; isPlaying = false; stopBGM(); cancelAnimationFrame(animationId);
+        document.getElementById('pause-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('menu-screen').classList.add('active');
+    }
+
+    // --- Inputs ---
+    window.addEventListener('keydown', e => {
+        if (e.key.toLowerCase() === 'p' || e.key === 'Escape') { togglePause(); return; }
+
+        if (!isPlaying || isPaused) return;
+
+        // สลับกล้อง
+        if (e.key.toLowerCase() === 'c') toggleCamera();
+
+        // ปุ่มลัดไอเทม
+        if (!player.isMoving) {
+            if (e.key === '1') useItem('magnet');
+            if (e.key === '2') useItem('breaker');
+            if (e.key === '3') useItem('warp');
+        }
+
+        if (isAimingWarp || player.isMoving) return; 
+
+        if (['ArrowUp', 'w', 'W'].includes(e.key)) moveSlide('up');
+        else if (['ArrowRight', 'd', 'D'].includes(e.key)) moveSlide('right');
+        else if (['ArrowDown', 's', 'S'].includes(e.key)) moveSlide('down');
+        else if (['ArrowLeft', 'a', 'A'].includes(e.key)) moveSlide('left');
+    });
+
+    // เล็งวาร์ปด้วยเมาส์ (คำนวณผ่าน Camera Matrix)
+    canvas.addEventListener('click', e => {
+        if (!isAimingWarp) return;
+        const rect = canvas.getBoundingClientRect();
+        
+        // พิกัดเมาส์บนจอ
+        const screenX = e.clientX - rect.left;
+        const screenY = e.clientY - rect.top;
+        
+        // Reverse Transform กล้อง กลับไปเป็นพิกัดโลก
+        const worldX = (screenX - canvas.width/2) / camera.zoom + camera.x;
+        const worldY = (screenY - canvas.height/2) / camera.zoom + camera.y;
+
+        const tX = Math.floor(worldX / baseCellSize);
+        const tY = Math.floor(worldY / baseCellSize);
+
+        if (tX >= 0 && tX < cols && tY >= 0 && tY < rows) {
+            inventory.warp--; 
+            isAimingWarp = false; canvas.classList.remove('aiming-warp');
+            
+            spawnParticles(player.drawX + baseCellSize/2, player.drawY + baseCellSize/2, varColor('warp'), 30, 8);
+            player.logX = player.targetX = tX; player.logY = player.targetY = tY;
+            player.drawX = tX * baseCellSize; player.drawY = tY * baseCellSize;
+            playSound('warp');
+            spawnParticles(player.drawX + baseCellSize/2, player.drawY + baseCellSize/2, '#ffffff', 30, 8);
+            updateInventoryUI();
+        }
+    });
+
+    // --- Maze Generation ---
+    function generateMaze() {
+        maze = [];
+        for (let y = 0; y < rows; y++) {
+            let row = [];
+            for (let x = 0; x < cols; x++) {
+                row.push({ x, y, walls: { top: true, right: true, bottom: true, left: true }, visited: false, isBrake: false });
+            }
+            maze.push(row);
+        }
+        let stack = [], current = maze[0][0]; current.visited = true;
+
+        while (true) {
+            let next = getUnvisitedNeighbor(current.x, current.y);
+            if (next) {
+                next.visited = true; stack.push(current);
+                removeWalls(current, next); current = next;
+            } else if (stack.length > 0) current = stack.pop();
+            else break;
+        }
+    }
+
+    function getUnvisitedNeighbor(x, y) {
+        let n = [];
+        if (y > 0 && !maze[y-1][x].visited) n.push(maze[y-1][x]);
+        if (x < cols-1 && !maze[y][x+1].visited) n.push(maze[y][x+1]);
+        if (y < rows-1 && !maze[y+1][x].visited) n.push(maze[y+1][x]);
+        if (x > 0 && !maze[y][x-1].visited) n.push(maze[y][x-1]);
+        return n.length > 0 ? n[Math.floor(Math.random() * n.length)] : undefined;
+    }
+
+    function removeWalls(a, b) {
+        let dx = a.x - b.x, dy = a.y - b.y;
+        if (dx === 1) { a.walls.left = false; b.walls.right = false; }
+        else if (dx === -1) { a.walls.right = false; b.walls.left = false; }
+        if (dy === 1) { a.walls.top = false; b.walls.bottom = false; }
+        else if (dy === -1) { a.walls.bottom = false; b.walls.top = false; }
+    }
+
+    function placeItems() {
+        exitPortal = { x: cols - 1, y: rows - 1 };
+        powerups = []; coins = []; portals = [];
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                let cell = maze[y][x];
+                let openWalls = (!cell.walls.top?1:0) + (!cell.walls.bottom?1:0) + (!cell.walls.left?1:0) + (!cell.walls.right?1:0);
+                if (openWalls >= 3) cell.isBrake = true; 
+            }
+        }
+        
+        do {
+            keyItem.x = Math.floor(Math.random() * cols); keyItem.y = Math.floor(Math.random() * rows);
+        } while (keyItem.x < 3 && keyItem.y < 3);
+
+        let numPowerups = Math.floor(cols * rows * 0.05); 
+        for(let i=0; i<numPowerups; i++) {
+            let px = Math.floor(Math.random() * cols), py = Math.floor(Math.random() * rows);
+            if (px < 2 && py < 2) continue;
+            let rand = Math.random();
+            let type = rand < 0.45 ? 'magnet' : (rand < 0.9 ? 'breaker' : 'warp'); 
+            powerups.push({ x: px, y: py, type: type, collected: false });
+        }
+
+        let numCoins = Math.floor(cols * rows * 0.15); 
+        for(let i=0; i<numCoins; i++) {
+            let cx = Math.floor(Math.random() * cols), cy = Math.floor(Math.random() * rows);
+            if ((cx===0 && cy===0) || (cx===exitPortal.x && cy===exitPortal.y) || (cx===keyItem.x && cy===keyItem.y)) continue;
+            coins.push({logX: cx, logY: cy, drawX: cx * baseCellSize, drawY: cy * baseCellSize, collected: false});
+        }
+    }
+
+    // --- Movement Logic ---
+    function moveSlide(dir) {
+        let destX = player.logX, destY = player.logY;
+        let hitBrake = false, wallSmashed = false;
+
+        while(true) {
+            let cell = maze[destY][destX];
+            let nextX = destX, nextY = destY, hitWall = false;
+
+            if (dir === 'up') { if(!cell.walls.top) nextY--; else hitWall = true; }
+            else if (dir === 'down') { if(!cell.walls.bottom) nextY++; else hitWall = true; }
+            else if (dir === 'left') { if(!cell.walls.left) nextX--; else hitWall = true; }
+            else if (dir === 'right') { if(!cell.walls.right) nextX++; else hitWall = true; }
+
+            if (hitWall) {
+                if (activeBuffs.breaker && nextX >= 0 && nextX < cols && nextY >= 0 && nextY < rows) {
+                    wallSmashed = true; activeBuffs.breaker = false; updateInventoryUI();
+                    playSound('smash');
+                    
+                    gameContainer.classList.remove('shake');
+                    void gameContainer.offsetWidth; 
+                    gameContainer.classList.add('shake');
+
+                    if (dir === 'up') { maze[destY][destX].walls.top = false; maze[nextY][nextX].walls.bottom = false; }
+                    else if (dir === 'down') { maze[destY][destX].walls.bottom = false; maze[nextY][nextX].walls.top = false; }
+                    else if (dir === 'left') { maze[destY][destX].walls.left = false; maze[nextY][nextX].walls.right = false; }
+                    else if (dir === 'right') { maze[destY][destX].walls.right = false; maze[nextY][nextX].walls.left = false; }
+                    
+                    spawnParticles(destX*baseCellSize + baseCellSize/2, destY*baseCellSize + baseCellSize/2, varColor('breaker'), 25, 10);
+                    addFloatingText(destX*baseCellSize, destY*baseCellSize, "SMASH!", varColor('breaker'));
+                } else { break; }
+            } else {
+                destX = nextX; destY = nextY;
+                if (maze[destY][destX].isBrake) { hitBrake = true; break; }
+            }
+        }
+
+        if (destX !== player.logX || destY !== player.logY || wallSmashed) {
+            player.targetX = destX; player.targetY = destY;
+            player.isMoving = true; player.willHitBrake = hitBrake; 
+            playSound('slide');
+        }
+    }
+
+    // เช็คเก็บของจากพิกัดวาด (แก้บัคแม่เหล็ก)
+    function checkInteractionsByDistance(px, py) {
+        // เช็คเหรียญ
+        coins.forEach(c => {
+            if(!c.collected) {
+                let dist = Math.sqrt(Math.pow(px - (c.drawX + baseCellSize/2), 2) + Math.pow(py - (c.drawY + baseCellSize/2), 2));
+                if (dist < baseCellSize * 0.6) { // ระยะประชิด
+                    c.collected = true; coinsCollected++; document.getElementById('coin-counter').innerText = coinsCollected;
+                    playSound('coin'); spawnParticles(c.drawX + baseCellSize/2, c.drawY + baseCellSize/2, '#ffdd00', 5, 3);
+                    addScore(50, c.drawX, c.drawY);
+                }
+            }
+        });
+
+        let lx = Math.floor(px / baseCellSize);
+        let ly = Math.floor(py / baseCellSize);
+        
+        // เช็คไอเทม
+        powerups.forEach(p => {
+            if (!p.collected && p.x === lx && p.y === ly) {
+                p.collected = true; inventory[p.type]++; updateInventoryUI();
+                playSound('powerup');
+                addFloatingText(lx*baseCellSize, ly*baseCellSize, `+1 ${p.type.toUpperCase()}`, varColor(p.type));
+                spawnParticles(lx * baseCellSize + baseCellSize/2, ly * baseCellSize + baseCellSize/2, varColor(p.type), 15, 5);
+                addScore(100, lx*baseCellSize, ly*baseCellSize);
+            }
+        });
+
+        // เช็คกุญแจ
+        if (!keyItem.collected && lx === keyItem.x && ly === keyItem.y) {
+            keyItem.collected = true;
+            document.getElementById('quest-status').innerText = "ทางเปิด! 🚪";
+            document.getElementById('quest-status').style.color = "#00ff66";
+            playSound('key');
+            spawnParticles(lx * baseCellSize + baseCellSize/2, ly * baseCellSize + baseCellSize/2, '#00ff66', 30, 8);
+            addScore(500, lx*baseCellSize, ly*baseCellSize);
+        }
+
+        // เช็คเส้นชัย (ต้องกุญแจครบและตัวหยุดนิ่ง)
+        if (keyItem.collected && lx === exitPortal.x && ly === exitPortal.y && !player.isMoving) { 
+            nextStage(); 
+        }
+    }
+
+    // --- Game Loop ---
+    function gameLoop() {
+        if (!isPlaying || isPaused) {
+            animationId = requestAnimationFrame(gameLoop);
+            return;
+        }
+
+        // --- อัปเดตกล้อง (Camera Smoothing) ---
+        let pCenterX = player.drawX + baseCellSize/2;
+        let pCenterY = player.drawY + baseCellSize/2;
+
+        if (isZoomedIn) {
+            camTarget.x = pCenterX;
+            camTarget.y = pCenterY;
+            camTarget.zoom = 1.3; // ซูมดูใกล้ๆ ตัวละคร
+        } else {
+            camTarget.x = (cols * baseCellSize) / 2;
+            camTarget.y = (rows * baseCellSize) / 2;
+            // ซูมออกให้เห็นพอดีจอ
+            let fitZoom = Math.min(canvas.width / (cols * baseCellSize), canvas.height / (rows * baseCellSize)) * 0.95;
+            camTarget.zoom = fitZoom;
+        }
+
+        camera.x += (camTarget.x - camera.x) * 0.1;
+        camera.y += (camTarget.y - camera.y) * 0.1;
+        camera.zoom += (camTarget.zoom - camera.zoom) * 0.1;
+
+        // Combo
+        if (comboTimer > 0) {
+            comboTimer--;
+            if (comboTimer <= 0) {
+                comboMultiplier = 1; document.getElementById('combo-box').classList.remove('active');
+            }
+        }
+
+        // Magnet Logic (แก้ไขดึงเข้าหาเป้า)
+        if (activeBuffs.magnet > 0) {
+            activeBuffs.magnet--;
+            coins.forEach(c => {
+                if(!c.collected) {
+                    let dx = pCenterX - (c.drawX + baseCellSize/2), dy = pCenterY - (c.drawY + baseCellSize/2);
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < baseCellSize * 4) { // รัศมีแม่เหล็ก
+                        c.drawX += (dx / dist) * (baseCellSize * 0.25); 
+                        c.drawY += (dy / dist) * (baseCellSize * 0.25);
+                    }
+                }
+            });
+            if (activeBuffs.magnet <= 0) updateInventoryUI();
+        }
+
+        // Movement
+        if (player.isMoving) {
+            let speed = baseCellSize * 0.5; 
+            let targetDrawX = player.targetX * baseCellSize, targetDrawY = player.targetY * baseCellSize;
+            let dx = targetDrawX - player.drawX, dy = targetDrawY - player.drawY;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+
+            trails.push({ x: player.drawX, y: player.drawY, alpha: 0.8 });
+
+            if (dist < speed) {
+                player.drawX = targetDrawX; player.drawY = targetDrawY;
+                player.logX = player.targetX; player.logY = player.targetY;
+                player.isMoving = false;
+                
+                if (player.willHitBrake) playSound('brake');
+                else { playSound('hitWall'); spawnParticles(player.drawX + baseCellSize/2, player.drawY + baseCellSize/2, '#ffffff', 5, 4); }
+                
+            } else {
+                player.drawX += (dx / dist) * speed; player.drawY += (dy / dist) * speed;
+            }
+        }
+        
+        // เช็คการชนตลอดเวลาอัปเดต
+        checkInteractionsByDistance(player.drawX + baseCellSize/2, player.drawY + baseCellSize/2);
+
+        particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.alpha -= 0.05; });
+        particles = particles.filter(p => p.alpha > 0);
+
+        floatingTexts.forEach(ft => { ft.y -= 1; ft.alpha -= 0.03; });
+        floatingTexts = floatingTexts.filter(ft => ft.alpha > 0);
+
+        draw();
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // --- Drawing System ---
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        // Camera Transform
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.scale(camera.zoom, camera.zoom);
+        ctx.translate(-camera.x, -camera.y);
+
+        // จุดวงแหวนเบรก
+        ctx.strokeStyle = 'rgba(181, 0, 255, 0.4)'; ctx.lineWidth = 2;
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                if (maze[y][x].isBrake) {
+                    ctx.beginPath(); ctx.arc(x * baseCellSize + baseCellSize/2, y * baseCellSize + baseCellSize/2, baseCellSize * 0.2, 0, Math.PI*2); ctx.stroke();
+                }
+            }
+        }
+
+        // กำแพง
+        ctx.strokeStyle = '#4a4a6a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                let cell = maze[y][x]; let px = x * baseCellSize, py = y * baseCellSize;
+                ctx.beginPath();
+                if (cell.walls.top) { ctx.moveTo(px, py); ctx.lineTo(px + baseCellSize, py); }
+                if (cell.walls.right) { ctx.moveTo(px + baseCellSize, py); ctx.lineTo(px + baseCellSize, py + baseCellSize); }
+                if (cell.walls.bottom) { ctx.moveTo(px + baseCellSize, py + baseCellSize); ctx.lineTo(px, py + baseCellSize); }
+                if (cell.walls.left) { ctx.moveTo(px, py + baseCellSize); ctx.lineTo(px, py); }
+                ctx.stroke();
+            }
+        }
+
+        // เหรียญ
+        ctx.fillStyle = '#ffdd00';
+        coins.forEach(c => {
+            if(!c.collected) {
+                ctx.beginPath(); ctx.arc(c.drawX + baseCellSize/2, c.drawY + baseCellSize/2, baseCellSize * 0.15, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // ไอเทมบนพื้น
+        powerups.forEach(p => {
+            if(!p.collected) {
+                ctx.fillStyle = varColor(p.type);
+                ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+                let pulse = Math.sin(Date.now() / 150) * 2;
+                ctx.beginPath(); ctx.arc(p.x * baseCellSize + baseCellSize/2, p.y * baseCellSize + baseCellSize/2, (baseCellSize * 0.2) + pulse, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        });
+
+        // กุญแจ & ทางออก
+        if (!keyItem.collected) {
+            ctx.fillStyle = '#ff6600'; ctx.shadowBlur = 20; ctx.shadowColor = '#ff6600';
+            ctx.beginPath(); ctx.arc(keyItem.x * baseCellSize + baseCellSize/2, keyItem.y * baseCellSize + baseCellSize/2, (baseCellSize/4) + Math.sin(Date.now()/150)*3, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        ctx.fillStyle = keyItem.collected ? '#00ff66' : '#331122';
+        ctx.shadowBlur = keyItem.collected ? 30 : 0; ctx.shadowColor = ctx.fillStyle;
+        ctx.fillRect(exitPortal.x * baseCellSize + baseCellSize*0.1, exitPortal.y * baseCellSize + baseCellSize*0.1, baseCellSize*0.8, baseCellSize*0.8);
+        ctx.shadowBlur = 0;
+
+        // เงาตามตัว
+        trails.forEach((t) => {
+            ctx.fillStyle = activeBuffs.breaker ? `rgba(255, 0, 85, ${t.alpha})` : `rgba(0, 240, 255, ${t.alpha})`;
+            ctx.beginPath(); ctx.arc(t.x + baseCellSize / 2, t.y + baseCellSize / 2, (baseCellSize / 3) * t.alpha, 0, Math.PI * 2); ctx.fill();
+            t.alpha -= 0.15; 
+        });
+        trails = trails.filter(t => t.alpha > 0); 
+
+        // ตัว Player
+        let pX = player.isMoving ? player.drawX : player.logX * baseCellSize;
+        let pY = player.isMoving ? player.drawY : player.logY * baseCellSize;
+        
+        if (activeBuffs.magnet > 0) {
+            ctx.strokeStyle = `rgba(0, 240, 255, ${Math.abs(Math.sin(Date.now()/100))})`;
+            ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pX + baseCellSize/2, pY + baseCellSize/2, baseCellSize * 0.8, 0, Math.PI*2); ctx.stroke();
+        }
+
+        ctx.fillStyle = '#ffffff'; 
+        ctx.shadowBlur = 25; ctx.shadowColor = activeBuffs.breaker ? '#ff0055' : '#00f0ff';
+        ctx.beginPath(); ctx.arc(pX + baseCellSize / 2, pY + baseCellSize / 2, baseCellSize / 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = activeBuffs.breaker ? '#ff0055' : '#00f0ff'; ctx.lineWidth = 4; ctx.stroke(); ctx.shadowBlur = 0;
+
+        // Particles
+        particles.forEach(p => {
+            ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+        });
+        
+        // Floating Texts
+        ctx.textAlign = "center";
+        floatingTexts.forEach(ft => {
+            ctx.globalAlpha = ft.alpha; ctx.fillStyle = ft.color; ctx.font = "bold 20px Prompt";
+            ctx.fillText(ft.text, ft.x + baseCellSize/2, ft.y);
+        });
+
+        ctx.restore();
+    }
+
+</script>
+</body>
+</html>
