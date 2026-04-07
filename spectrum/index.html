@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Sytrum | NaphatHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #0b0f19; color: #f8fafc; overflow-x: hidden; }
+        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .canvas-container { width: 100%; aspect-ratio: 16/9; position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5); background: #000; }
+        canvas { width: 100%; height: 100%; display: block; }
+        input[type="range"] { accent-color: #3b82f6; cursor: pointer; }
+        
+        /* Tab System Styles */
+        .tab-btn { transition: all 0.2s; }
+        .tab-btn.active { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #60a5fa; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 relative">
+
+    <div id="renderOverlay" class="fixed inset-0 z-50 hidden bg-slate-900/95 backdrop-blur-lg flex-col items-center justify-center text-white transition-opacity">
+        <i data-lucide="clapperboard" class="w-20 h-20 animate-pulse text-indigo-500 mb-6"></i>
+        <h2 class="text-3xl font-bold mb-2 tracking-wide">กำลังสร้างวิดีโอ...</h2>
+        <p class="text-slate-400 font-bold mb-4">ห้ามปิดแท็บนี้จนกว่าจะเสร็จ (พับจอได้)</p>
+        <div id="renderProgressText" class="mt-6 font-mono text-6xl text-blue-400 font-bold drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">0%</div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent italic">AUDIO SYTRUM</h1>
+                <p class="text-slate-500 text-xs tracking-[0.3em] uppercase mt-1">NaphatHub</p>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                <div class="flex flex-col">
+                    <label class="text-[9px] text-slate-400 uppercase font-bold px-1">Resolution</label>
+                    <select id="resSelect" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-slate-200 outline-none">
+                        <option value="1280x720">HD 720p</option>
+                        <option value="1920x1080" selected>FHD 1080p</option>
+                        <option value="2560x1440">2K 1440p</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[9px] text-slate-400 uppercase font-bold px-1">Framerate</label>
+                    <select id="fpsSelect" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-slate-200 outline-none">
+                        <option value="30">30 FPS</option>
+                        <option value="60" selected>60 FPS</option>
+                    </select>
+                </div>
+                <div class="h-8 w-px bg-slate-600 mx-1"></div>
+                <button onclick="savePreset()" class="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 rounded-lg transition" title="Save Preset"><i data-lucide="save" class="w-4 h-4"></i></button>
+                <button onclick="loadPreset()" class="p-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 rounded-lg transition" title="Load Preset"><i data-lucide="download-cloud" class="w-4 h-4"></i></button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <div class="lg:col-span-4 flex flex-col h-[75vh]">
+                
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                    <button onclick="openTab('media')" id="btn-media" class="tab-btn active flex-1 py-2 px-3 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-slate-400 whitespace-nowrap"><i data-lucide="folder-open" class="w-4 h-4 inline mr-1 mb-0.5"></i> มีเดีย</button>
+                    <button onclick="openTab('spectrum')" id="btn-spectrum" class="tab-btn flex-1 py-2 px-3 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-slate-400 whitespace-nowrap"><i data-lucide="activity" class="w-4 h-4 inline mr-1 mb-0.5"></i> คลื่นเสียง</button>
+                    <button onclick="openTab('particles')" id="btn-particles" class="tab-btn flex-1 py-2 px-3 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-slate-400 whitespace-nowrap"><i data-lucide="sparkles" class="w-4 h-4 inline mr-1 mb-0.5"></i> เอฟเฟกต์</button>
+                    <button onclick="openTab('layers')" id="btn-layers" class="tab-btn flex-1 py-2 px-3 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-slate-400 whitespace-nowrap"><i data-lucide="layers" class="w-4 h-4 inline mr-1 mb-0.5"></i> เลเยอร์รูป</button>
+                </div>
+
+                <div class="glass flex-1 rounded-2xl p-5 overflow-y-auto custom-scrollbar">
+                    
+                    <div id="tab-media" class="tab-content active space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-xs text-blue-400 font-bold">1. เพลง (Audio) *</label> <button onclick="clearAudio()" class="text-[10px] text-red-400 hover:text-red-300">ล้างเพลง</button></div>
+                            <input type="file" id="audioInput" accept="audio/*" class="w-full text-xs file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600/20 file:text-blue-400 text-slate-400 border border-slate-700 rounded-lg p-1 bg-slate-900/50">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-xs text-emerald-400 font-bold">2. รูปพื้นหลัง (Background)</label> <button onclick="clearBg()" class="text-[10px] text-red-400 hover:text-red-300">ล้างรูป</button></div>
+                            <input type="file" id="bgInput" accept="image/*" class="w-full text-xs file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-600/20 file:text-emerald-400 text-slate-400 border border-slate-700 rounded-lg p-1 bg-slate-900/50">
+                        </div>
+                        <div class="border-t border-slate-700 pt-4 mt-2">
+                            <label class="text-[10px] text-slate-500 mb-1 block">สีพื้นหลังทึบ (กรณีไม่ใส่รูป BG)</label>
+                            <input type="color" id="bgColor" value="#0f172a" class="w-full h-10 rounded-lg cursor-pointer bg-transparent border-0">
+                        </div>
+                    </div>
+
+                    <div id="tab-spectrum" class="tab-content space-y-5">
+                        <select id="specStyle" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm outline-none focus:ring-2 ring-blue-500 text-white">
+                            <option value="bars">Classic Bars (แท่งตั้ง)</option>
+                            <option value="line">Fluid Line (เส้นต่อกัน)</option>
+                            <option value="wave">Center Wave (กระจายกลาง)</option>
+                            <option value="circle">Circular (วงกลมล้อมรอบ)</option>
+                        </select>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-[10px] text-slate-500 mb-1 block">สีคลื่น 1</label><input type="color" id="color1" value="#00f0ff" class="w-full h-10 rounded-lg cursor-pointer bg-transparent border-0"></div>
+                            <div><label class="text-[10px] text-slate-500 mb-1 block">สีคลื่น 2</label><input type="color" id="color2" value="#ff0055" class="w-full h-10 rounded-lg cursor-pointer bg-transparent border-0"></div>
+                        </div>
+
+                        <div class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                            <input type="checkbox" id="glowToggle" checked class="w-4 h-4 accent-pink-500">
+                            <label class="text-sm text-pink-400 font-bold">เปิด Neon Glow ให้คลื่นเสียง</label>
+                        </div>
+
+                        <div class="space-y-4 pt-2">
+                            <div><div class="flex justify-between items-end"><label class="text-[10px] text-slate-400">ความหนาคลื่น</label><span id="bwVal" class="text-xs text-blue-400">3.0</span></div><input type="range" id="barWidth" min="0.5" max="15" step="0.5" value="3" class="w-full h-1 bg-slate-700 rounded-lg"></div>
+                            <div><div class="flex justify-between items-end"><label class="text-[10px] text-slate-400">ระยะห่าง</label><span id="bgapVal" class="text-xs text-blue-400">2.0</span></div><input type="range" id="barGap" min="0" max="15" step="0.5" value="2" class="w-full h-1 bg-slate-700 rounded-lg"></div>
+                            <div><div class="flex justify-between items-end"><label class="text-[10px] text-slate-400">ความสูง (Sensitivity)</label><span id="sensVal" class="text-xs text-blue-400">2.5</span></div><input type="range" id="sensitivity" min="0.5" max="5" step="0.1" value="2.5" class="w-full h-1 bg-slate-700 rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <div id="tab-particles" class="tab-content space-y-4">
+                        <div class="flex items-center gap-3 bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                            <input type="checkbox" id="particleToggle" checked class="w-4 h-4 accent-emerald-500" onchange="toggleParticles()">
+                            <label class="text-sm text-emerald-400 font-bold">เปิดใช้งาน Particles</label>
+                        </div>
+
+                        <div id="particleSettings" class="space-y-5">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[10px] text-slate-500 mb-1 block">สีของ Particles</label><input type="color" id="partColor" value="#ffffff" class="w-full h-10 rounded-lg cursor-pointer bg-transparent border-0"></div>
+                                <div class="flex flex-col justify-center pt-4">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="partGlowToggle" checked class="w-4 h-4 accent-yellow-400"><span class="text-xs text-yellow-400 font-bold">Neon Glow</span></label>
+                                </div>
+                            </div>
+
+                            <select id="partDir" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:ring-2 ring-emerald-500" onchange="initParticles()">
+                                <option value="explode">พุ่งกระจายจากตรงกลาง (Explode)</option>
+                                <option value="up">ลอยขึ้น (Float Up)</option>
+                                <option value="down">หิมะตก (Snow Down)</option>
+                            </select>
+
+                            <div><div class="flex justify-between items-end"><label class="text-[10px] text-slate-400">จำนวนเม็ด</label><span id="pCountVal" class="text-xs text-emerald-400">100</span></div><input type="range" id="partCount" min="10" max="400" step="10" value="100" class="w-full h-1 bg-slate-700 rounded-lg" onchange="initParticles()"></div>
+                            <div><div class="flex justify-between items-end"><label class="text-[10px] text-slate-400">ความเร็วพื้นฐาน</label><span id="pSpeedVal" class="text-xs text-emerald-400">1.5</span></div><input type="range" id="partSpeed" min="0.1" max="5" step="0.1" value="1.5" class="w-full h-1 bg-slate-700 rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <div id="tab-layers" class="tab-content space-y-4">
+                        <button onclick="addImageLayer()" class="w-full py-3 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 rounded-lg text-sm font-bold border border-orange-500/50 border-dashed flex justify-center items-center gap-2 transition">
+                            <i data-lucide="plus" class="w-5 h-5"></i> เพิ่มเลเยอร์รูปภาพ
+                        </button>
+                        <div id="layersContainer" class="space-y-3">
+                            </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="canvas-container border border-slate-700/50">
+                    <canvas id="mainCanvas" width="1920" height="1080"></canvas>
+                </div>
+                
+                <div class="glass p-5 rounded-2xl flex flex-col gap-4">
+                    <div class="flex items-center gap-4 w-full">
+                        <button id="previewBtn" class="w-14 h-14 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)] shrink-0">
+                            <span id="iconContainer"><i data-lucide="play" class="w-6 h-6 ml-1"></i></span>
+                        </button>
+                        
+                        <div class="flex-1 space-y-1">
+                            <div class="flex justify-between text-[11px] font-mono text-slate-400 font-bold">
+                                <span id="curTime">00:00</span>
+                                <span class="text-slate-500">TIMELINE</span>
+                                <span id="durTime">00:00</span>
+                            </div>
+                            <input type="range" id="progressBar" value="0" step="0.1" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <button id="renderBtn" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl font-bold shadow-[0_0_20px_rgba(79,70,229,0.3)] flex items-center justify-center gap-2 transition-all active:scale-95 text-white">
+                        <i data-lucide="video"></i> RENDER VIDEO
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- UI & Tabs Logic ---
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('btn-' + tabName).classList.add('active');
+        }
+
+        lucide.createIcons();
+
+        // --- Core Variables ---
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let audioCtx, analyser, source, recorder, chunks = [];
+        let audio = new Audio();
+        let isPlaying = false;
+        let isRecording = false;
+        let isEngineInitialized = false;
+        let animationId;
+
+        // Settings Elements
+        const resSelect = document.getElementById('resSelect');
+        const fpsSelect = document.getElementById('fpsSelect');
+        const bgColor = document.getElementById('bgColor');
+        const bgInput = document.getElementById('bgInput');
+        let imgBg = null;
+
+        // Web Worker for Render Timing (Prevent inactive tab freeze)
+        const workerBlob = new Blob([`
+            let timer = null;
+            self.onmessage = function(e) {
+                if(e.data.cmd === 'start') {
+                    timer = setInterval(() => self.postMessage('tick'), 1000 / e.data.fps);
+                } else if(e.data.cmd === 'stop') {
+                    clearInterval(timer);
+                }
+            };
+        `], { type: 'application/javascript' });
+        const tickerWorker = new Worker(URL.createObjectURL(workerBlob));
+
+        // --- Layers System ---
+        let layers = [];
+        let layerIdCounter = 0;
+
+        function addImageLayer() {
+            const id = layerIdCounter++;
+            layers.push({ id: id, img: new Image(), hasImage: false, x: 0, y: 0, scale: 30, react: true });
+            renderLayerUI();
+        }
+        function removeImageLayer(id) { layers = layers.filter(l => l.id !== id); renderLayerUI(); if(!isPlaying) drawFrame(); }
+        function updateLayer(id, prop, val) { const l = layers.find(l => l.id === id); if(l){ l[prop] = val; if(!isPlaying) drawFrame(); } }
+        function handleLayerImage(id, file) {
+            const l = layers.find(l => l.id === id);
+            if(l && file) { l.img.src = URL.createObjectURL(file); l.img.onload = () => { l.hasImage = true; if(!isPlaying) drawFrame(); }; }
+        }
+
+        function renderLayerUI() {
+            const container = document.getElementById('layersContainer');
+            container.innerHTML = '';
+            layers.forEach((l, index) => {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/50 relative">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-bold text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded">LAYER ${index + 1}</span>
+                            <button onclick="removeImageLayer(${l.id})" class="text-red-400 hover:text-red-300 bg-red-400/10 p-1 rounded"><i data-lucide="trash" class="w-3 h-3"></i></button>
+                        </div>
+                        <input type="file" accept="image/*" onchange="handleLayerImage(${l.id}, this.files[0])" class="w-full text-[10px] mb-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-orange-500/20 file:text-orange-400 text-slate-400">
+                        <div class="flex gap-2">
+                            <div class="w-1/3"><label class="text-[9px] text-slate-500">สเกล</label><input type="range" min="5" max="150" value="${l.scale}" oninput="updateLayer(${l.id}, 'scale', this.value)" class="w-full accent-orange-500"></div>
+                            <div class="w-1/3"><label class="text-[9px] text-slate-500">แกน X</label><input type="range" min="-100" max="100" value="${l.x}" oninput="updateLayer(${l.id}, 'x', this.value)" class="w-full accent-orange-500"></div>
+                            <div class="w-1/3"><label class="text-[9px] text-slate-500">แกน Y</label><input type="range" min="-100" max="100" value="${l.y}" oninput="updateLayer(${l.id}, 'y', this.value)" class="w-full accent-orange-500"></div>
+                        </div>
+                        <label class="flex items-center gap-2 mt-2 cursor-pointer bg-slate-900/50 p-1.5 rounded"><input type="checkbox" ${l.react ? 'checked' : ''} onchange="updateLayer(${l.id}, 'react', this.checked)" class="accent-purple-500"><span class="text-[10px] text-slate-300 font-bold">เด้งตามจังหวะเบส</span></label>
+                    </div>
+                `);
+            });
+            lucide.createIcons();
+        }
+
+        // --- Particle System (FIXED) ---
+        let particles = [];
+        const partToggle = document.getElementById('particleToggle');
+        
+        function initParticles() {
+            particles = [];
+            const count = parseInt(document.getElementById('partCount').value);
+            const dir = document.getElementById('partDir').value;
+            for(let i=0; i<count; i++) {
+                let p = { x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 3 + 1 };
+                if(dir === 'explode') {
+                    let angle = Math.random() * Math.PI * 2;
+                    let spd = Math.random() * 2 + 0.5;
+                    p.vx = Math.cos(angle) * spd; p.vy = Math.sin(angle) * spd;
+                    p.x = canvas.width/2; p.y = canvas.height/2; // เริ่มจากตรงกลาง
+                } else {
+                    p.vx = (Math.random() - 0.5) * 1.5;
+                    p.vy = (Math.random() * 1.5) + 0.5;
+                }
+                particles.push(p);
+            }
+        }
+        initParticles();
+
+        function toggleParticles() {
+            document.getElementById('particleSettings').style.opacity = partToggle.checked ? '1' : '0.5';
+            document.getElementById('particleSettings').style.pointerEvents = partToggle.checked ? 'auto' : 'none';
+            if(!isPlaying) drawFrame();
+        }
+
+        // --- Quality Resolution Handler ---
+        function updateCanvasRes() {
+            const [w, h] = resSelect.value.split('x');
+            canvas.width = parseInt(w);
+            canvas.height = parseInt(h);
+            initParticles(); // รีเซ็ตพิกัดอนุภาคใหม่
+            if(!isPlaying) drawFrame();
+        }
+        resSelect.onchange = updateCanvasRes;
+
+        // --- Audio Controls ---
+        function clearAudio() {
+            audio.pause(); isPlaying = false; updateIcon('play');
+            audio.src = ""; document.getElementById('audioInput').value = "";
+            document.getElementById('progressBar').value = 0;
+            document.getElementById('curTime').innerText = "00:00"; document.getElementById('durTime').innerText = "00:00";
+        }
+        function clearBg() { imgBg = null; bgInput.value = ""; if(!isPlaying) drawFrame(); }
+
+        bgInput.onchange = (e) => { if(e.target.files[0]) { imgBg = new Image(); imgBg.src = URL.createObjectURL(e.target.files[0]); imgBg.onload = () => { if(!isPlaying) drawFrame(); }; } };
+        
+        audio.addEventListener('loadedmetadata', () => { document.getElementById('durTime').innerText = formatTime(audio.duration); });
+
+        document.getElementById('audioInput').onchange = (e) => {
+            if (e.target.files[0]) {
+                audio.pause(); isPlaying = false; updateIcon('play'); audio.currentTime = 0;
+                audio.src = URL.createObjectURL(e.target.files[0]);
+
+                if (!isEngineInitialized) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioCtx.createAnalyser();
+                    source = audioCtx.createMediaElementSource(audio);
+                    source.connect(analyser); analyser.connect(audioCtx.destination);
+                    analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.8; 
+                    isEngineInitialized = true;
+                    renderLoop();
+                } else if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            }
+        };
+
+        function formatTime(s) { if (isNaN(s)) return "00:00"; return `${Math.floor(s/60).toString().padStart(2,'0')}:${Math.floor(s%60).toString().padStart(2,'0')}`; }
+
+        audio.ontimeupdate = () => {
+            if (!audio.duration) return;
+            const pct = (audio.currentTime / audio.duration) * 100;
+            if (!isRecording) document.getElementById('progressBar').value = pct;
+            else document.getElementById('renderProgressText').innerText = `${Math.floor(pct)}%`;
+            document.getElementById('curTime').innerText = formatTime(audio.currentTime);
+        };
+        document.getElementById('progressBar').oninput = (e) => { if (audio.duration && !isRecording) audio.currentTime = (e.target.value / 100) * audio.duration; };
+
+        // --- Main Draw Logic ---
+        function drawFrame() {
+            const width = canvas.width; const height = canvas.height;
+            const cx = width / 2, cy = height / 2;
+
+            let bass = 0; let dataArray = new Uint8Array(0);
+            if (analyser) {
+                dataArray = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(dataArray);
+                for(let i=0; i<10; i++) bass += dataArray[i]; bass = bass / 10;
+            }
+            const bounceScale = 1 + (bass / 255) * 0.15; 
+
+            // 1. BG
+            ctx.clearRect(0, 0, width, height);
+            if (imgBg) {
+                ctx.save(); ctx.translate(cx, cy); ctx.scale(bounceScale*1.01, bounceScale*1.01);
+                ctx.drawImage(imgBg, -width/2, -height/2, width, height); ctx.restore();
+            } else {
+                ctx.fillStyle = bgColor.value; ctx.fillRect(0, 0, width, height);
+            }
+
+            // 2. Particles
+            if (partToggle.checked) {
+                const bSpeed = parseFloat(document.getElementById('partSpeed').value);
+                const speedMult = bSpeed + (bass/255) * bSpeed * 2.5; 
+                const dir = document.getElementById('partDir').value;
+                const pColor = document.getElementById('partColor').value;
+                const pGlow = document.getElementById('partGlowToggle').checked;
+
+                ctx.fillStyle = pColor;
+                if(pGlow){ ctx.shadowBlur = 10; ctx.shadowColor = pColor; } else { ctx.shadowBlur = 0; }
+                
+                ctx.beginPath();
+                particles.forEach(p => {
+                    if (dir === 'explode') {
+                        p.x += p.vx * speedMult; p.y += p.vy * speedMult;
+                        // ถ้าหลุดจอ ให้กลับมาเกิดใหม่ตรงกลาง
+                        if(p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+                            p.x = cx; p.y = cy;
+                            let angle = Math.random() * Math.PI * 2; let spd = Math.random()*2+0.5;
+                            p.vx = Math.cos(angle)*spd; p.vy = Math.sin(angle)*spd;
+                        }
+                    } else if (dir === 'up') {
+                        p.y -= Math.abs(p.vy) * speedMult; p.x += p.vx;
+                        if(p.y < 0) { p.y = height; p.x = Math.random()*width; }
+                    } else { // down
+                        p.y += Math.abs(p.vy) * speedMult; p.x += p.vx;
+                        if(p.y > height) { p.y = 0; p.x = Math.random()*width; }
+                    }
+                    ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                });
+                ctx.fill();
+            }
+
+            // 3. Spectrum
+            if(analyser) {
+                const uWidth = parseFloat(document.getElementById('barWidth').value);
+                const uGap = parseFloat(document.getElementById('barGap').value);
+                const sens = parseFloat(document.getElementById('sensitivity').value);
+                const style = document.getElementById('specStyle').value;
+                const c1 = document.getElementById('color1').value; const c2 = document.getElementById('color2').value;
+                
+                let grad = ctx.createLinearGradient(0, height, 0, height/2);
+                grad.addColorStop(0, c2); grad.addColorStop(1, c1);
+                ctx.fillStyle = grad; ctx.strokeStyle = grad;
+
+                if(document.getElementById('glowToggle').checked) { ctx.shadowBlur = 15; ctx.shadowColor = c1; } else { ctx.shadowBlur = 0; }
+
+                const usableLength = analyser.frequencyBinCount * 0.55;
+                if (style === 'circle') {
+                    const baseRadius = (height * 0.25) * bounceScale;
+                    const numBars = 160; ctx.lineWidth = uWidth; ctx.lineCap = 'round';
+                    for (let i = 0; i < numBars; i++) {
+                        const freqIndex = Math.floor((i / numBars) * usableLength);
+                        const val = dataArray[freqIndex] || 0;
+                        const h = (val / 255) * (height*0.2) * sens; 
+                        const angle = (i * 2 * Math.PI) / numBars;
+                        const x1 = cx + Math.cos(angle) * baseRadius; const y1 = cy + Math.sin(angle) * baseRadius;
+                        const x2 = cx + Math.cos(angle) * (baseRadius + h); const y2 = cy + Math.sin(angle) * (baseRadius + h);
+                        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                    }
+                } else {
+                    const totalWidth = uWidth + uGap; const numBars = Math.floor(width / totalWidth);
+                    if (style === 'bars') {
+                        for (let i = 0; i < numBars; i++) {
+                            const idx = Math.floor(Math.pow(i/numBars, 1.4) * usableLength);
+                            const h = ((dataArray[idx]||0) / 255) * height * (sens/2);
+                            ctx.fillRect(i * totalWidth, height - h, uWidth, h);
+                        }
+                    } else if (style === 'line') {
+                        ctx.beginPath(); ctx.lineWidth = uWidth; ctx.lineJoin = 'round';
+                        for (let i = 0; i < numBars; i++) {
+                            const idx = Math.floor(Math.pow(i/numBars, 1.4) * usableLength);
+                            const y = height - (((dataArray[idx]||0)/255) * height * (sens/2));
+                            if(i===0) ctx.moveTo(i*totalWidth, y); else ctx.lineTo(i*totalWidth, y);
+                        }
+                        ctx.stroke();
+                    } else if (style === 'wave') {
+                        for (let i = 0; i < numBars; i++) {
+                            const idx = Math.floor(Math.pow(i/numBars, 1.4) * usableLength);
+                            const h = ((dataArray[idx]||0) / 255) * height * (sens/3);
+                            ctx.fillRect(i*totalWidth, cy-(h/2), uWidth, h);
+                        }
+                    }
+                }
+            }
+
+            // 4. Layers
+            ctx.shadowBlur = 0;
+            layers.forEach(l => {
+                if(l.hasImage) {
+                    ctx.save();
+                    const lx = cx + (l.x/100 * cx); const ly = cy + (l.y/100 * cy);
+                    ctx.translate(lx, ly);
+                    if(l.react) ctx.scale(bounceScale, bounceScale);
+                    const targetSize = width * (l.scale / 100); const ratio = l.img.height / l.img.width;
+                    ctx.drawImage(l.img, -targetSize/2, -(targetSize*ratio)/2, targetSize, targetSize*ratio);
+                    ctx.restore();
+                }
+            });
+        }
+
+        // Loop management
+        function renderLoop() {
+            if (!isRecording) {
+                drawFrame();
+                animationId = requestAnimationFrame(renderLoop);
+            }
+        }
+        tickerWorker.onmessage = () => { if (isRecording) drawFrame(); };
+
+        function updateIcon(n) { document.getElementById('iconContainer').innerHTML = `<i data-lucide="${n}" class="w-6 h-6 ml-1"></i>`; lucide.createIcons(); }
+
+        document.getElementById('previewBtn').onclick = () => {
+            if (!audio.src) return alert("เลือกเพลงก่อนลูกพี่!");
+            if (isRecording) return;
+            if (isPlaying) audio.pause(); else audio.play();
+        };
+
+        audio.onpause = () => { isPlaying = false; updateIcon('play'); };
+        audio.onplay = () => { isPlaying = true; updateIcon('pause'); };
+        audio.onended = () => { if(!isRecording) { isPlaying = false; updateIcon('play'); }};
+
+        // --- Render Engine ---
+        document.getElementById('renderBtn').onclick = async () => {
+            if (!audio.src) return alert("เลือกเพลงก่อนจ้า!");
+            
+            isRecording = true;
+            cancelAnimationFrame(animationId); // ปิดลูปปกติ เพื่อให้ Worker คุมจังหวะ 100% ป้องกันเฟรมเรตแกว่ง
+            document.getElementById('renderOverlay').classList.replace('hidden', 'flex');
+            document.getElementById('progressBar').disabled = true;
+
+            const targetFPS = parseInt(fpsSelect.value);
+            tickerWorker.postMessage({cmd: 'start', fps: targetFPS});
+            chunks = [];
+            
+            const canvasStream = canvas.captureStream(targetFPS);
+            const audioDest = audioCtx.createMediaStreamDestination();
+            analyser.connect(audioDest);
+
+            const combined = new MediaStream([...canvasStream.getVideoTracks(), ...audioDest.stream.getAudioTracks()]);
+            
+            // คำนวณ Bitrate ตามความละเอียด
+            const [w, h] = resSelect.value.split('x');
+            const bitrate = parseInt(w) * parseInt(h) * targetFPS * 0.15; // สูตรประเมินคุณภาพสูง
+
+            recorder = new MediaRecorder(combined, { 
+                mimeType: 'video/webm;codecs=vp9', 
+                videoBitsPerSecond: bitrate 
+            });
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                tickerWorker.postMessage({cmd: 'stop'});
+                const url = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+                const a = document.createElement('a'); a.href = url;
+                a.download = `SytimeZz_Studio_${resSelect.value}_${targetFPS}fps.webm`;
+                a.click();
+
+                isRecording = false;
+                document.getElementById('renderOverlay').classList.replace('flex', 'hidden');
+                document.getElementById('progressBar').disabled = false;
+                document.getElementById('renderProgressText').innerText = "0%";
+                renderLoop(); // กลับสู่ภาวะปกติ
+            };
+
+            audio.currentTime = 0; recorder.start(); audio.play();
+            audio.onended = () => { if(isRecording) recorder.stop(); };
+        };
+
+        // --- Save / Load Preset ---
+        function savePreset() {
+            const data = {
+                res: resSelect.value, fps: fpsSelect.value, bgC: bgColor.value,
+                sStyle: document.getElementById('specStyle').value, c1: document.getElementById('color1').value, c2: document.getElementById('color2').value,
+                sGlow: document.getElementById('glowToggle').checked, sW: document.getElementById('barWidth').value, sG: document.getElementById('barGap').value, sS: document.getElementById('sensitivity').value,
+                pT: partToggle.checked, pD: document.getElementById('partDir').value, pC: document.getElementById('partColor').value, pG: document.getElementById('partGlowToggle').checked,
+                pNum: document.getElementById('partCount').value, pSpd: document.getElementById('partSpeed').value
+            };
+            localStorage.setItem('sytimezz_v4', JSON.stringify(data));
+            alert("บันทึกการตั้งค่าลงเบราว์เซอร์สำเร็จ!");
+        }
+
+        function loadPreset() {
+            const d = JSON.parse(localStorage.getItem('sytimezz_v4'));
+            if(d) {
+                resSelect.value = d.res; fpsSelect.value = d.fps; updateCanvasRes();
+                bgColor.value = d.bgC; document.getElementById('specStyle').value = d.sStyle; document.getElementById('color1').value = d.c1; document.getElementById('color2').value = d.c2;
+                document.getElementById('glowToggle').checked = d.sGlow; document.getElementById('barWidth').value = d.sW; document.getElementById('barGap').value = d.sG; document.getElementById('sensitivity').value = d.sS;
+                partToggle.checked = d.pT; document.getElementById('partDir').value = d.pD; document.getElementById('partColor').value = d.pC; document.getElementById('partGlowToggle').checked = d.pG;
+                document.getElementById('partCount').value = d.pNum; document.getElementById('partSpeed').value = d.pSpd;
+                
+                toggleParticles(); initParticles();
+                ['barWidth','barGap','sensitivity'].forEach(id => document.getElementById(id.replace('barWidth','bw').replace('barGap','bgap').replace('sensitivity','sens')+'Val').innerText = parseFloat(d[id==='barWidth'?'sW':id==='barGap'?'sG':'sS']).toFixed(1));
+                document.getElementById('pCountVal').innerText = d.pNum; document.getElementById('pSpeedVal').innerText = parseFloat(d.pSpd).toFixed(1);
+                
+                if(!isPlaying) drawFrame();
+                alert("โหลดการตั้งค่าสำเร็จ! (กรุณาใส่ไฟล์เพลง/รูปภาพใหม่อีกครั้ง)");
+            } else { alert("ยังไม่มีการตั้งค่าที่บันทึกไว้ครับ"); }
+        }
+
+        // Live Text Updates
+        ['barWidth','barGap','sensitivity'].forEach(id => {
+            document.getElementById(id).oninput = (e) => {
+                document.getElementById(id.replace('barWidth','bw').replace('barGap','bgap').replace('sensitivity','sens') + 'Val').innerText = parseFloat(e.target.value).toFixed(1);
+                if(!isPlaying) drawFrame();
+            };
+        });
+        document.getElementById('partCount').oninput = (e) => document.getElementById('pCountVal').innerText = e.target.value;
+        document.getElementById('partSpeed').oninput = (e) => document.getElementById('pSpeedVal').innerText = parseFloat(e.target.value).toFixed(1);
+
+        [document.getElementById('color1'), document.getElementById('color2'), bgColor, document.getElementById('partColor'), document.getElementById('specStyle'), document.getElementById('glowToggle'), document.getElementById('partGlowToggle')].forEach(el => {
+            el.onchange = () => { if(!isPlaying) drawFrame(); };
+        });
+        
+        updateCanvasRes(); // Init canvas size
+    </script>
+</body>
+</html>
