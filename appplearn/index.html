@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppPlearn | NaphatHub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #312e81, #701a75, #4c0519);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+
+        .category {
+            margin-bottom: 3.5rem;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e2e8f0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #93c5fd;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .card:hover i {
+            transform: scale(1.1) rotate(5deg);
+            color: #bfdbfe;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 AppPlearn</h1>
+            <p>คลังโปรแกรมฟรีสามัญประจำเครื่อง โหลดตรงจาก Official</p>
+        </header>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-globe"></i> Web Browsers</h2>
+            <div class="grid">
+                <a href="https://www.google.com/chrome/" target="_blank" class="card">
+                    <i class="fab fa-chrome" style="color: #fca5a5;"></i>
+                    <h3>Chrome</h3>
+                    <p>เบราว์เซอร์ยอดฮิต</p>
+                </a>
+                <a href="https://www.microsoft.com/edge" target="_blank" class="card">
+                    <i class="fab fa-edge" style="color: #93c5fd;"></i>
+                    <h3>Edge</h3>
+                    <p>เบราว์เซอร์ติดเครื่อง</p>
+                </a>
+                <a href="https://www.mozilla.org/firefox/" target="_blank" class="card">
+                    <i class="fab fa-firefox-browser" style="color: #fdba74;"></i>
+                    <h3>Firefox</h3>
+                    <p>เบราว์เซอร์หมาไฟ</p>
+                </a>
+                <a href="https://brave.com/" target="_blank" class="card">
+                    <i class="fab fa-brave" style="color: #f87171;"></i>
+                    <h3>Brave</h3>
+                    <p>บล็อกโฆษณา รวดเร็ว</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-laptop-code"></i> Development & Tools</h2>
+            <div class="grid">
+                <a href="https://code.visualstudio.com/" target="_blank" class="card">
+                    <i class="fas fa-file-code" style="color: #60a5fa;"></i>
+                    <h3>VS Code</h3>
+                    <p>เครื่องมือเขียนโค้ด</p>
+                </a>
+                <a href="https://notepad-plus-plus.org/" target="_blank" class="card">
+                    <i class="fas fa-file-alt" style="color: #a7f3d0;"></i>
+                    <h3>Notepad++</h3>
+                    <p>Text Editor ยอดนิยม</p>
+                </a>
+                <a href="https://www.python.org/" target="_blank" class="card">
+                    <i class="fab fa-python" style="color: #fde047;"></i>
+                    <h3>Python</h3>
+                    <p>ภาษา Python</p>
+                </a>
+                <a href="https://www.oracle.com/java/technologies/downloads/" target="_blank" class="card">
+                    <i class="fab fa-java" style="color: #f87171;"></i>
+                    <h3>Java / JDK</h3>
+                    <p>Java Development Kit</p>
+                </a>
+                <a href="https://git-scm.com/" target="_blank" class="card">
+                    <i class="fab fa-git-alt" style="color: #fca5a5;"></i>
+                    <h3>Git</h3>
+                    <p>Version Control</p>
+                </a>
+                <a href="https://winscp.net/" target="_blank" class="card">
+                    <i class="fas fa-exchange-alt" style="color: #c4b5fd;"></i>
+                    <h3>WinSCP</h3>
+                    <p>FTP & SFTP Client</p>
+                </a>
+                <a href="https://www.apachefriends.org/" target="_blank" class="card">
+                    <i class="fas fa-server" style="color: #fbbf24;"></i>
+                    <h3>XAMPP</h3>
+                    <p>จำลอง Web Server</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-tools"></i> System Utilities</h2>
+            <div class="grid">
+                <a href="https://rufus.ie/" target="_blank" class="card">
+                    <i class="fab fa-usb" style="color: #93c5fd;"></i>
+                    <h3>Rufus</h3>
+                    <p>สร้าง USB Boot</p>
+                </a>
+                <a href="https://www.ventoy.net/" target="_blank" class="card">
+                    <i class="fas fa-compact-disc" style="color: #a7f3d0;"></i>
+                    <h3>Ventoy</h3>
+                    <p>Multiboot USB Solution</p>
+                </a>
+
+                <a href="https://jrsoftware.org/isdl.php" target="_blank" class="card">
+                    <i class="fa-solid fa-gear" style="color: #a7bdf3;"></i>
+                    <h3>Inno Setup</h3>
+                    <p>สร้าง Setup โปรแกรม</p>
+                </a>
+
+                <a href="https://www.7-zip.org/" target="_blank" class="card">
+                    <i class="fas fa-file-archive" style="color: #d1d5db;"></i>
+                    <h3>7-Zip</h3>
+                    <p>โปรแกรมแตกไฟล์ฟรี</p>
+                </a>
+                <a href="https://www.rarlab.com/" target="_blank" class="card">
+                    <i class="fas fa-box" style="color: #fcd34d;"></i>
+                    <h3>WinRAR</h3>
+                    <p>โปรแกรมบีบอัดไฟล์</p>
+                </a>
+                <a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" target="_blank" class="card">
+                    <i class="fas fa-cubes" style="color: #93c5fd;"></i>
+                    <h3>VC++ Redist</h3>
+                    <p>Runtime พื้นฐาน</p>
+                </a>
+                <a href="https://dotnet.microsoft.com/" target="_blank" class="card">
+                    <i class="fas fa-network-wired" style="color: #c4b5fd;"></i>
+                    <h3>.NET</h3>
+                    <p>รันไทม์ระบบ</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-paint-brush"></i> Creative & Game Dev</h2>
+            <div class="grid">
+                <a href="https://godotengine.org/" target="_blank" class="card">
+                    <i class="fas fa-robot" style="color: #93c5fd;"></i>
+                    <h3>Godot Engine</h3>
+                    <p>สร้างเกม 2D/3D ฟรี</p>
+                </a>
+                <a href="https://www.figma.com/" target="_blank" class="card">
+                    <i class="fab fa-figma" style="color: #fca5a5;"></i>
+                    <h3>Figma</h3>
+                    <p>ออกแบบ UI/UX</p>
+                </a>
+                <a href="https://krita.org/" target="_blank" class="card">
+                    <i class="fas fa-palette" style="color: #60a5fa;"></i>
+                    <h3>Krita</h3>
+                    <p>วาดรูปและลงสี</p>
+                </a>
+                <a href="https://www.blender.org/" target="_blank" class="card">
+                    <i class="fas fa-cube" style="color: #fdba74;"></i>
+                    <h3>Blender</h3>
+                    <p>งาน 3D & Animation</p>
+                </a>
+                <a href="https://www.gimp.org/" target="_blank" class="card">
+                    <i class="fas fa-magic" style="color: #9ca3af;"></i>
+                    <h3>GIMP</h3>
+                    <p>แต่งภาพฟรี</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-music"></i> Multimedia</h2>
+            <div class="grid">
+                <a href="https://www.videolan.org/" target="_blank" class="card">
+                    <i class="fas fa-play-circle" style="color: #f97316;"></i>
+                    <h3>VLC</h3>
+                    <p>เครื่องเล่นวิดีโอ</p>
+                </a>
+                <a href="https://www.audacityteam.org/" target="_blank" class="card">
+                    <i class="fa-solid fa-headphones" style="color: #fde047;"></i>
+                    <h3>Audacity</h3>
+                    <p>ตัดต่อเสียง</p>
+                </a>
+                <a href="https://www.aimp.ru/" target="_blank" class="card">
+                    <i class="fas fa-headphones" style="color: #fca5a5;"></i>
+                    <h3>AIMP</h3>
+                    <p>เครื่องเล่นเพลง</p>
+                </a>
+                <a href="https://www.spotify.com/" target="_blank" class="card">
+                    <i class="fab fa-spotify" style="color: #86efac;"></i>
+                    <h3>Spotify</h3>
+                    <p>ฟังเพลงออนไลน์</p>
+                </a>
+                <a href="https://codecguide.com/" target="_blank" class="card">
+                    <i class="fas fa-film" style="color: #93c5fd;"></i>
+                    <h3>K-Lite Codecs</h3>
+                    <p>ส่วนเสริมวิดีโอ</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-network-wired"></i> Connection</h2>
+            <div class="grid">
+                <a href="https://discord.com/" target="_blank" class="card">
+                    <i class="fab fa-discord" style="color: #a78bfa;"></i>
+                    <h3>Discord</h3>
+                    <p>แชทและคอมมูนิตี้</p>
+                </a>
+                <a href="https://anydesk.com/" target="_blank" class="card">
+                    <i class="fas fa-desktop" style="color: #f87171;"></i>
+                    <h3>AnyDesk</h3>
+                    <p>รีโมทคอมฯ</p>
+                </a>
+                <a href="https://www.teamviewer.com/" target="_blank" class="card">
+                    <i class="fas fa-users-viewfinder" style="color: #60a5fa;"></i>
+                    <h3>TeamViewer</h3>
+                    <p>รีโมทระยะไกล</p>
+                </a>
+                <a href="https://parsec.app/" target="_blank" class="card">
+                    <i class="fas fa-gamepad" style="color: #fde047;"></i>
+                    <h3>Parsec</h3>
+                    <p>รีโมทลื่นๆ สายเกม</p>
+                </a>
+                <a href="https://www.radmin-vpn.com/" target="_blank" class="card">
+                    <i class="fas fa-shield-halved" style="color: #a7f3d0;"></i>
+                    <h3>Radmin VPN</h3>
+                    <p>จำลองวงแลน</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-code-branch"></i> My Projects</h2>
+            <div class="grid">
+                <a href="https://drive.usercontent.google.com/download?id=1tiRwF-_rC3qspMXitDJ0KBvMRgJP86Zq&export=download&authuser=0" target="_blank" class="card">
+                    <i class="fas fa-cube" style="color: #ef4444;"></i>
+                    <h3>KotHub</h3>
+                    <p>Personal Utility Hub</p>
+                </a>
+                <a href="https://drive.usercontent.google.com/download?id=1z-F1QxOvs5dhVAqtY8qjbz8_nL_ffgze&export=download&authuser=0" target="_blank" class="card">
+                    <i class="fas fa-note-sticky" style="color: #fcd34d;"></i>
+                    <h3>OverNote</h3>
+                    <p>Advanced Journaling</p>
+                </a>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>
