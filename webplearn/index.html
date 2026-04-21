@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebPlearn | NaphatHub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            /* ปรับโทนสีให้เป็น อวกาศ/เทคโนโลยี (น้ำเงินลึก-ม่วง-ฟ้า) */
+            background: linear-gradient(-45deg, #020617, #1e1b4b, #172554, #0f766e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+
+        .category {
+            margin-bottom: 3.5rem;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e2e8f0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #5eead4; /* สีไอคอนหลักเป็นสีเขียวมิ้นท์/ฟ้า */
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .card:hover i {
+            transform: scale(1.1) rotate(5deg);
+            color: #99f6e4;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 WebPlearn</h1>
+            <p>คลังแสงรวมเว็บแอปและแหล่งข้อมูลที่มีประโยชน์ ทำงานผ่านเบราว์เซอร์ได้เลย</p>
+        </header>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-brain"></i> AI & Assistants</h2>
+            <div class="grid">
+                <a href="https://chat.openai.com/" target="_blank" class="card">
+                    <i class="fas fa-comment-dots" style="color: #10b981;"></i>
+                    <h3>ChatGPT</h3>
+                    <p>AI ช่วยคิดและเขียนโค้ด</p>
+                </a>
+                <a href="https://gemini.google.com/" target="_blank" class="card">
+                    <i class="fas fa-comment-dots" style="color: #60a5fa;"></i>
+                    <h3>Gemini</h3>
+                    <p>AI อัจฉริยะจาก Google</p>
+                </a>
+                <a href="https://claude.ai/" target="_blank" class="card">
+                    <i class="fas fa-robot" style="color: #d946ef;"></i>
+                    <h3>Claude</h3>
+                    <p>AI วิเคราะห์ข้อมูลเก่ง</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-palette"></i> Design & Assets</h2>
+            <div class="grid">
+                <a href="https://www.photopea.com/" target="_blank" class="card">
+                    <i class="fas fa-image" style="color: #34d399;"></i>
+                    <h3>Photopea</h3>
+                    <p>Photoshop บนเว็บ ฟรี</p>
+                </a>
+                <a href="https://www.canva.com/" target="_blank" class="card">
+                    <i class="fas fa-object-group" style="color: #38bdf8;"></i>
+                    <h3>Canva</h3>
+                    <p>ออกแบบกราฟิกง่ายๆ</p>
+                </a>
+                <a href="https://fontawesome.com/search" target="_blank" class="card">
+                    <i class="fab fa-font-awesome-flag" style="color: #60a5fa;"></i>
+                    <h3>Font Awesome</h3>
+                    <p>คลังไอคอนสำหรับทำเว็บ</p>
+                </a>
+                <a href="https://colorhunt.co/" target="_blank" class="card">
+                    <i class="fas fa-swatchbook" style="color: #fbbf24;"></i>
+                    <h3>Color Hunt</h3>
+                    <p>หาไอเดียพาเลทสีสวยๆ</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-code"></i> Developer & Coding</h2>
+            <div class="grid">
+                <a href="https://github.com/" target="_blank" class="card">
+                    <i class="fab fa-github" style="color: #cbd5e1;"></i>
+                    <h3>GitHub</h3>
+                    <p>ฝากโค้ดและทำงานร่วมกัน</p>
+                </a>
+                <a href="https://www.infinityfree.com/" target="_blank" class="card">
+                    <i class="fa-solid fa-infinity" style="color: #fbafff;"></i>
+                    <h3>Infinity Free</h3>
+                    <p>โฮสต์เว็บไซต์ฟรี และลงฐานข้อมูลได้</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title"><i class="fas fa-tools"></i> Utility & Converters</h2>
+            <div class="grid">
+                <a href="https://cloudconvert.com/" target="_blank" class="card">
+                    <i class="fas fa-exchange-alt" style="color: #f43f5e;"></i>
+                    <h3>CloudConvert</h3>
+                    <p>แปลงไฟล์ได้ทุกนามสกุล</p>
+                </a>
+                <a href="https://www.remove.bg/" target="_blank" class="card">
+                    <i class="fas fa-user-slash" style="color: #94a3b8;"></i>
+                    <h3>Remove.bg</h3>
+                    <p>ลบพื้นหลังรูปเนียนๆ</p>
+                </a>
+                <a href="https://10minutemail.com/" target="_blank" class="card">
+                    <i class="fas fa-envelope-open-text" style="color: #fb923c;"></i>
+                    <h3>10 Minute Mail</h3>
+                    <p>อีเมลชั่วคราว ไว้สมัครเว็บ</p>
+                </a>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>
