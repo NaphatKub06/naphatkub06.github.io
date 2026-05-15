@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Chain Game - Ultimate Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e1e2e 100%);
+            color: #cdd6f4; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Container */
+        .container {
+            background: rgba(49, 50, 68, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            transition: transform 0.1s ease;
+        }
+
+        /* Screen Shake Animation for Errors */
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        h1 { margin-top: 0; color: #b4befe; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .timer-box {
+            font-size: 50px;
+            font-weight: 800;
+            color: #a6e3a1;
+            margin: 10px 0;
+            text-shadow: 0 0 15px rgba(166, 227, 161, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            color: #bac2de;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #f9e2af;
+        }
+
+        .highlight { color: #89b4fa; font-weight: 800; text-shadow: 0 0 10px rgba(137, 180, 250, 0.4); }
+        .combo-text { color: #fab387; font-weight: bold; font-size: 14px; min-height: 21px; transition: 0.3s; }
+        
+        .input-group { position: relative; }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background-color: rgba(24, 24, 37, 0.8);
+            color: #cdd6f4;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        input:focus { 
+            border-color: #89b4fa; 
+            box-shadow: 0 0 20px rgba(137, 180, 250, 0.3);
+            transform: translateY(-2px);
+        }
+        input:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(45deg, #89b4fa, #b4befe);
+            color: #11111b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(137, 180, 250, 0.4);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        button:hover:not(:disabled) { 
+            transform: translateY(-3px) scale(1.02); 
+            box-shadow: 0 8px 25px rgba(137, 180, 250, 0.6); 
+        }
+        button:active:not(:disabled) { transform: translateY(1px); }
+        button:disabled { background: #45475a; box-shadow: none; cursor: wait; }
+        
+        #message { margin-top: 20px; min-height: 24px; font-weight: 600; font-size: 15px; transition: 0.3s; }
+        
+        #wordList {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            max-width: 600px;
+        }
+
+        /* Staggered Animation Effect */
+        .word-item {
+            background: rgba(69, 71, 90, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #cdd6f4;
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .word-item .first-letter { color: #f38ba8; font-weight: 800; }
+        .word-item .last-letter { color: #89b4fa; font-weight: 800; }
+
+        @keyframes popIn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Floating +Score / +Time Animation */
+        .floating-text {
+            position: absolute;
+            font-weight: 800;
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUpFade 1s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+            z-index: 10;
+        }
+
+        @keyframes floatUpFade {
+            0% { opacity: 0; transform: translateY(0) scale(0.8); }
+            20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container" id="gameContainer">
+        <h1>Word Chain 🔥</h1>
+        
+        <div class="timer-box" id="timer">30</div>
+        
+        <div class="stats-grid">
+            <div class="stat-item">
+                Score
+                <span id="score" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                Starts With
+                <span id="nextLetter" class="stat-value highlight">ANY</span>
+            </div>
+        </div>
+
+        <div class="combo-text" id="comboDisplay"></div>
+
+        <div class="input-group">
+            <input type="text" id="wordInput" autocomplete="off" placeholder="Type word here..." autofocus spellcheck="false">
+        </div>
+        
+        <button id="submitBtn" onclick="processWord()">Submit Word</button>
+        <button id="restartBtn" onclick="resetGame()" style="display: none; background: linear-gradient(45deg, #f38ba8, #eba0ac); box-shadow: 0 4px 15px rgba(243, 139, 168, 0.4);">Play Again</button>
+        
+        <p id="message">Start typing to begin! ⏳</p>
+    </div>
+
+    <ul id="wordList"></ul>
+
+    <script>
+        const TIME_LIMIT = 30;
+        let timeLeft = TIME_LIMIT;
+        let timerId = null;
+        let usedWords = new Set();
+        let lastChar = '';
+        let score = 0;
+        let combo = 0;
+        let isGameOver = false;
+        let gameStarted = false;
+
+        const containerEl = document.getElementById('gameContainer');
+        const timerEl = document.getElementById('timer');
+        const inputEl = document.getElementById('wordInput');
+        const messageEl = document.getElementById('message');
+        const nextLetterEl = document.getElementById('nextLetter');
+        const scoreEl = document.getElementById('score');
+        const comboDisplayEl = document.getElementById('comboDisplay');
+        const wordListEl = document.getElementById('wordList');
+        const submitBtn = document.getElementById('submitBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        inputEl.addEventListener('input', () => {
+            if (!gameStarted && !isGameOver) {
+                gameStarted = true;
+                showMessage("Game Started! 🔥", "#a6e3a1");
+                startTimer();
+            }
+        });
+
+        function updateTimerUI() {
+            timerEl.innerText = timeLeft;
+            if (timeLeft <= 5 && gameStarted) {
+                timerEl.style.color = "#f38ba8";
+                timerEl.style.transform = "scale(1.1)";
+                timerEl.style.textShadow = "0 0 20px rgba(243, 139, 168, 0.8)";
+            } else {
+                timerEl.style.color = "#a6e3a1";
+                timerEl.style.transform = "scale(1)";
+                timerEl.style.textShadow = "0 0 15px rgba(166, 227, 161, 0.5)";
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerId);
+            timeLeft = TIME_LIMIT;
+            updateTimerUI();
+            
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                if (timeLeft <= 0) gameOver("Time's up! ⏰");
+            }, 1000);
+        }
+
+        function resumeTimer() {
+            clearInterval(timerId);
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                if (timeLeft <= 0) gameOver("Time's up! ⏰");
+            }, 1000);
+        }
+
+        function triggerError(msg) {
+            showMessage(msg, "#f38ba8");
+            combo = 0;
+            comboDisplayEl.innerText = "";
+            
+            timeLeft = Math.max(1, timeLeft - 3); 
+            updateTimerUI();
+            
+            containerEl.classList.remove('shake');
+            void containerEl.offsetWidth; 
+            containerEl.classList.add('shake');
+            
+            createFloatingText("-3s", "#f38ba8", 50, -30);
+        }
+
+        function createFloatingText(text, color, offsetX = 0, offsetY = 0) {
+            const floatEl = document.createElement('div');
+            floatEl.className = 'floating-text';
+            floatEl.innerText = text;
+            floatEl.style.color = color;
+            floatEl.style.textShadow = `0 0 10px ${color}`;
+            
+            const rect = inputEl.getBoundingClientRect();
+            floatEl.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
+            floatEl.style.top = `${rect.top + offsetY}px`;
+            
+            document.body.appendChild(floatEl);
+            setTimeout(() => floatEl.remove(), 1000);
+        }
+
+        async function processWord() {
+            if (isGameOver) return;
+
+            if (!gameStarted) {
+                gameStarted = true;
+                startTimer();
+            }
+
+            let word = inputEl.value.trim().toLowerCase();
+            inputEl.value = '';
+
+            if (!word) return;
+
+            if (!/^[a-z]+$/.test(word)) {
+                triggerError("English letters only! 🔠");
+                return;
+            }
+
+            if (usedWords.has(word)) {
+                triggerError(`Already used "${word}"! 🔄`);
+                return;
+            }
+
+            if (lastChar !== '' && word[0] !== lastChar) {
+                triggerError(`Must start with '${lastChar.toUpperCase()}'! ⚠️`);
+                return;
+            }
+
+            clearInterval(timerId); 
+            inputEl.disabled = true;
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Checking...";
+            showMessage(`Checking "${word}"... 🔍`, "#89dceb");
+
+            try {
+                // อัปเกรด: ใช้ Promise.race จับเวลาแข่งกับ API ถ้าเกิน 3 วิตัดจบเลยไม่ให้ค้าง
+                const fetchPromise = fetch(`https://api.datamuse.com/words?sp=${word}&max=1`);
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('timeout')), 3000)
+                );
+
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                if (!response.ok) throw new Error('network');
+                
+                const data = await response.json();
+
+                // เช็คว่า API มีคำศัพท์นี้คืนมาไหม
+                if (data.length === 0 || data[0].word.toLowerCase() !== word) {
+                    triggerError(`"${word}" is not a valid word! ❌`);
+                    resumeTimer();
+                } else {
+                    usedWords.add(word);
+                    lastChar = word[word.length - 1];
+                    
+                    combo++;
+                    let pointsEarned = 1 + Math.floor(combo / 3); 
+                    score += pointsEarned;
+                    
+                    if (combo > 1) {
+                        comboDisplayEl.innerText = `${combo} COMBO! (x${pointsEarned} Pts) 🔥`;
+                        createFloatingText(`+${pointsEarned}`, "#f9e2af", 0, -40);
+                    } else {
+                        comboDisplayEl.innerText = "";
+                    }
+
+                    if (word.length >= 6) {
+                        createFloatingText("+2s Bonus!", "#a6e3a1", 60, -20);
+                    }
+
+                    nextLetterEl.innerText = lastChar.toUpperCase();
+                    scoreEl.innerText = score;
+                    showMessage("Awesome! Keep going! 🚀", "#a6e3a1");
+
+                    let li = document.createElement('li');
+                    li.className = 'word-item';
+                    let formattedWord = `<span class="first-letter">${word[0]}</span>${word.slice(1, -1)}<span class="last-letter">${word[word.length-1]}</span>`;
+                    li.innerHTML = formattedWord;
+                    wordListEl.prepend(li);
+
+                    let TIME_LIMIT_NOW = word.length >= 6 ? 32 : 30;
+                    timeLeft = TIME_LIMIT_NOW;
+                    updateTimerUI();
+                    resumeTimer(); 
+                }
+            } catch (error) {
+                if (error.message === 'timeout') {
+                    showMessage("Server took too long! Try again. 🐢", "#f38ba8");
+                } else {
+                    showMessage("Network error! Try again. 🌐", "#f38ba8");
+                }
+                resumeTimer(); 
+            } finally {
+                // การันตีว่าปลดล็อคหน้าต่างคืนเสมอ ไม่ว่าผลจะออกมาท่าไหน
+                if (!isGameOver) {
+                    inputEl.disabled = false;
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit Word";
+                    inputEl.focus();
+                }
+            }
+        }
+
+        function gameOver(reason) {
+            clearInterval(timerId);
+            isGameOver = true;
+            inputEl.disabled = true;
+            submitBtn.style.display = "none";
+            restartBtn.style.display = "block";
+            showMessage(`Game Over! ${reason}`, "#f38ba8");
+            comboDisplayEl.innerText = `Final Score: ${score}`;
+            comboDisplayEl.style.color = "#f9e2af";
+            comboDisplayEl.style.fontSize = "18px";
+        }
+
+        function resetGame() {
+            isGameOver = false;
+            gameStarted = false; 
+            usedWords.clear();
+            lastChar = '';
+            score = 0;
+            combo = 0;
+            timeLeft = TIME_LIMIT;
+            updateTimerUI();
+            
+            inputEl.disabled = false;
+            submitBtn.style.display = "block";
+            submitBtn.disabled = false;
+            restartBtn.style.display = "none";
+            wordListEl.innerHTML = '';
+            nextLetterEl.innerText = 'ANY';
+            scoreEl.innerText = score;
+            comboDisplayEl.innerText = "";
+            comboDisplayEl.style.fontSize = "14px";
+            showMessage("Start typing to begin! ⏳", "#89b4fa");
+            
+            inputEl.focus();
+            clearInterval(timerId); 
+        }
+
+        inputEl.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') processWord();
+        });
+
+        function showMessage(text, color) {
+            messageEl.innerText = text;
+            messageEl.style.color = color;
+        }
+
+        updateTimerUI(); 
+    </script>
+</body>
+</html>
