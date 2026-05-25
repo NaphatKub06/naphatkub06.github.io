@@ -116,13 +116,8 @@
     <script>
         // --- 1. ฟีเจอร์ดาวน์โหลดไฟล์ .exe ---
         document.getElementById('btn-download').onclick = () => {
-            // ชี้เป้าไปที่ไฟล์ server.exe ที่วางอยู่โฟลเดอร์เดียวกันบน GitHub
-            const a = document.createElement('a');
-            a.href = 'server.exe'; 
-            a.download = 'CarMarai_Server.exe'; // ชื่อไฟล์ตอนโหลดเสร็จ
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // เอาลิงก์ยาวๆ จาก GitHub Releases มาใส่ตรงนี้!
+            window.location.href = 'https://github.com/NaphatKub06/naphatkub06.github.io/releases/download/1.0.0/server.exe'; 
         };
 
         // --- 2. ระบบพื้นฐาน (Network & State) ---
