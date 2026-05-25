@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CarMarai | NaphatHub</title>
+    <style>
+        body { margin: 0; background-color: #111; color: white; font-family: sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+        
+        /* หน้าต่างกรอก IP */
+        #setup-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #1a1a1a; display: flex; justify-content: center; align-items: center; z-index: 999; flex-direction: column; }
+        .setup-box { background: #2d3436; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #555; width: 80%; max-width: 400px; }
+        .setup-box h1 { margin-top: 0; color: #feca57; font-size: 1.8rem; }
+        .setup-box p { color: #aaa; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.4; }
+        .setup-box input { width: 85%; padding: 12px; font-size: 1.2rem; border-radius: 8px; border: none; text-align: center; font-weight: bold; margin-bottom: 15px; }
+        .setup-box button { background: #0984e3; color: white; border: none; padding: 12px 30px; font-size: 1.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; margin-bottom: 10px; }
+        .setup-box button:active { transform: scale(0.95); }
+        .setup-box .btn-download { background: #2ed573; color: #111; }
+        #setup-error { color: #ff4757; margin-top: 15px; font-weight: bold; display: none; }
+
+        /* เมนูด้านบน */
+        #toolbar { position: absolute; top: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: space-between; align-items: center; padding: 10px; box-sizing: border-box; z-index: 100; border-bottom: 2px solid #333; }
+        .toolbar-group { display: flex; gap: 8px; align-items: center; }
+        .menu-btn { background: #333; color: white; border: 1px solid #555; padding: 6px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .menu-btn.active { background: #e1b12c; color: #000; }
+        .menu-btn.vibrate-on { background: #ff7675; color: #fff; }
+        .btn-exit { background: #ff4757; color: white; }
+        
+        /* สไตล์เลือกโปรไฟล์ */
+        .profile-select { background: #0984e3; color: white; border: 1px solid #0984e3; padding: 6px; border-radius: 5px; font-weight: bold; font-size: 0.85rem; outline: none; }
+        
+        .sens-container { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: #aaa; background: #222; padding: 2px 10px; border-radius: 5px; border: 1px solid #444; }
+        .sens-container input[type="range"] { width: 60px; margin-top: 3px; }
+        .sens-val-text { color: #feca57; font-weight: bold; font-size: 0.85rem; }
+        
+        /* ปุ่มเกม */
+        #gamepad-area { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
+        .game-btn { position: absolute; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2); transition: transform 0.1s; }
+        .game-btn:active { opacity: 0.7; }
+        .game-btn.edit-mode { border: 2px dashed #fff; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        
+        /* หน้าต่าง Modal จัดการปุ่ม */
+        #modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 10px; z-index: 200; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid #444; width: 280px; }
+        #modal h3 { margin-top: 0; color: #fff; }
+        .modal-row { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-row select, .modal-row input { padding: 5px; font-size: 1rem; border-radius: 4px; border: 1px solid #555; background: #333; color: white; }
+        .modal-btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-save { background: #2ed573; color: white; }
+        .btn-del { background: #ff4757; color: white; }
+        .btn-close { background: #7f8fa6; color: white; }
+    </style>
+</head>
+<body>
+    <div id="setup-screen">
+        <div class="setup-box">
+            <h1>🏎️ CarMarai</h1>
+            <p>กรอก IP จากหน้าต่างโปรแกรมบน PC (server.py)</p>
+            <input type="text" id="ip-input" placeholder="เช่น 192.168.1.45" autocomplete="off">
+            <button id="btn-connect">🚀 เชื่อมต่อ PC</button>
+            <button id="btn-download" class="btn-download">📥 โหลดโปรแกรม PC (GUI)</button>
+            <p id="setup-error">❌ เชื่อมต่อไม่ได้! ลองเช็ค IP</p>
+        </div>
+    </div>
+
+    <div id="toolbar">
+        <div class="toolbar-group">
+            <button id="btn-exit" class="menu-btn btn-exit">🔙</button>
+            <select id="profile-selector" class="profile-select">
+                <option value="NFS">NFS</option>
+                <option value="Forza">Forza</option>
+                <option value="Custom">Custom</option>
+            </select>
+            <div class="sens-container">
+                <div>ไว: <span id="sens-val" class="sens-val-text">1.0</span>x</div>
+                <input type="range" id="slider-sens" min="0.5" max="3" step="0.1" value="1">
+            </div>
+        </div>
+        <div class="toolbar-group">
+            <button id="btn-fullscreen" class="menu-btn">📺 เต็มจอ</button>
+            <button id="btn-vibrate" class="menu-btn vibrate-on">📳</button>
+            <button id="btn-add" class="menu-btn" style="display:none;">➕</button>
+            <button id="btn-edit" class="menu-btn">⚙️ จัดปุ่ม</button>
+        </div>
+    </div>
+    
+    <div id="gamepad-area"></div>
+    
+    <div id="modal">
+        <h3>ตั้งค่าปุ่ม</h3>
+        <div class="modal-row"><label>ฟังก์ชัน:</label>
+            <select id="modal-action">
+                <optgroup label="Drive">
+                    <option value="LT">LT (เบรก)</option><option value="RT">RT (คันเร่ง)</option>
+                    <option value="A">A</option><option value="B">B</option><option value="X">X</option><option value="Y">Y</option>
+                </optgroup>
+                <optgroup label="Menu / D-Pad">
+                    <option value="UP">🔼 บน</option><option value="DOWN">🔽 ล่าง</option>
+                    <option value="LEFT">◀️ ซ้าย</option><option value="RIGHT">▶️ ขวา</option>
+                    <option value="SELECT">Select</option><option value="START">Start</option>
+                </optgroup>
+                <optgroup label="Misc">
+                    <option value="LB">LB</option><option value="RB">RB</option>
+                    <option value="L3">L3</option><option value="R3">R3</option>
+                </optgroup>
+            </select>
+        </div>
+        <div class="modal-row"><label>สีปุ่ม:</label><input type="color" id="modal-color"></div>
+        <div class="modal-row"><label>ขนาด:</label><input type="range" id="modal-size" min="40" max="150" step="10"><span id="size-val">100</span></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <button class="modal-btn btn-del" id="modal-del">ลบทิ้ง</button>
+            <div><button class="modal-btn btn-close" id="modal-close">ปิด</button><button class="modal-btn btn-save" id="modal-save">บันทึก</button></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. ฟีเจอร์ดาวน์โหลดไฟล์ .exe ---
+        document.getElementById('btn-download').onclick = () => {
+            // ชี้เป้าไปที่ไฟล์ server.exe ที่วางอยู่โฟลเดอร์เดียวกันบน GitHub
+            const a = document.createElement('a');
+            a.href = 'server.exe'; 
+            a.download = 'CarMarai_Server.exe'; // ชื่อไฟล์ตอนโหลดเสร็จ
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        // --- 2. ระบบพื้นฐาน (Network & State) ---
+        let ws = null;
+        let isEditMode = false;
+        let currentEditBtnId = null;
+        let draggedBtn = null;
+        let state = { steering: 0, buttons: {} };
+
+        // --- 3. ระบบโปรไฟล์เกม ---
+        let currentProfile = localStorage.getItem('joyCurrentProfile') || "NFS";
+        document.getElementById('profile-selector').value = currentProfile;
+        
+        let profilesData = JSON.parse(localStorage.getItem('joyProfilesData')) || {
+            "NFS": [
+                { id: 1, action: "LT", color: "#ff4757", size: 90, x: 50, y: window.innerHeight - 120 },
+                { id: 2, action: "RT", color: "#2ed573", size: 90, x: window.innerWidth - 120, y: window.innerHeight - 120 },
+                { id: 3, action: "A", color: "#0984e3", size: 60, x: window.innerWidth - 80, y: window.innerHeight - 200 }
+            ],
+            "Forza": [
+                { id: 1, action: "LT", color: "#ff4757", size: 80, x: 40, y: window.innerHeight - 100 },
+                { id: 2, action: "RT", color: "#2ed573", size: 80, x: window.innerWidth - 100, y: window.innerHeight - 100 }
+            ],
+            "Custom": []
+        };
+
+        function saveProfiles() {
+            localStorage.setItem('joyProfilesData', JSON.stringify(profilesData));
+            localStorage.setItem('joyCurrentProfile', currentProfile);
+        }
+
+        document.getElementById('profile-selector').onchange = (e) => {
+            currentProfile = e.target.value;
+            saveProfiles();
+            renderButtons();
+        };
+
+        // --- 4. ระบบการสั่น (Vibrate Feedback) ---
+        let isVibrateOn = localStorage.getItem('joyVibrate') !== 'false'; 
+        const btnVibrate = document.getElementById('btn-vibrate');
+        function updateVibrateUI() {
+            btnVibrate.classList.toggle('vibrate-on', isVibrateOn);
+        }
+        updateVibrateUI();
+
+        btnVibrate.onclick = () => {
+            isVibrateOn = !isVibrateOn;
+            localStorage.setItem('joyVibrate', isVibrateOn);
+            updateVibrateUI();
+            if (isVibrateOn && navigator.vibrate) navigator.vibrate(50);
+        };
+
+        // --- 5. ระบบเชื่อมต่อ WebSocket ---
+        const savedIP = localStorage.getItem('lastIP');
+        if (savedIP) document.getElementById('ip-input').value = savedIP;
+
+        document.getElementById('btn-connect').onclick = async () => {
+            const ip = document.getElementById('ip-input').value.trim();
+            if (!ip) return;
+            
+            document.getElementById('btn-connect').innerText = "กำลังเชื่อมต่อ...";
+            document.getElementById('setup-error').style.display = "none";
+            ws = new WebSocket(`ws://${ip}:8765`);
+            
+            ws.onopen = async () => {
+                localStorage.setItem('lastIP', ip);
+                document.getElementById('setup-screen').style.display = "none";
+                
+                // ขออนุญาต Fullscreen อัตโนมัติเมื่อกดเชื่อมต่อ
+                try {
+                    if (!document.fullscreenElement) {
+                        await document.documentElement.requestFullscreen();
+                        if (screen.orientation && screen.orientation.lock) await screen.orientation.lock("landscape");
+                    }
+                } catch(e) {}
+            };
+            
+            ws.onmessage = (event) => {
+                if (!isVibrateOn || !navigator.vibrate) return; 
+                const data = JSON.parse(event.data);
+                if (data.type === 'rumble') {
+                    let force = Math.max(data.large, data.small);
+                    if (force > 0) navigator.vibrate(force > 150 ? 150 : 80);
+                }
+            };
+            
+            ws.onclose = () => { if(document.getElementById('setup-screen').style.display === "none") document.getElementById('btn-exit').click(); };
+            ws.onerror = () => { document.getElementById('setup-error').style.display = "block"; document.getElementById('btn-connect').innerText = "🚀 เชื่อมต่อ PC"; };
+        };
+
+        // --- 6. ปุ่มควบคุมหน้าจอ (ออก / เต็มจอ) ---
+        document.getElementById('btn-exit').onclick = () => {
+            if (ws) ws.close();
+            document.getElementById('setup-screen').style.display = "flex";
+            document.getElementById('btn-connect').innerText = "🚀 เชื่อมต่อ PC";
+            if (document.fullscreenElement) document.exitFullscreen().catch(err => console.log(err));
+        };
+
+        // ปุ่มเต็มจอแบบ Manual (เผื่อหลุดจากการเต็มจออัตโนมัติ)
+        document.getElementById('btn-fullscreen').onclick = async () => {
+            try {
+                if (!document.fullscreenElement) {
+                    await document.documentElement.requestFullscreen();
+                    if (screen.orientation && screen.orientation.lock) await screen.orientation.lock("landscape");
+                } else {
+                    document.exitFullscreen();
+                }
+            } catch (err) { console.log(err); }
+        };
+
+        // --- 7. ระบบ Gyroscope (พวงมาลัย) ---
+        let sensitivity = parseFloat(localStorage.getItem('joySens')) || 1.0;
+        document.getElementById('slider-sens').value = sensitivity;
+        document.getElementById('sens-val').innerText = sensitivity.toFixed(1);
+        document.getElementById('slider-sens').oninput = (e) => {
+            sensitivity = parseFloat(e.target.value);
+            document.getElementById('sens-val').innerText = sensitivity.toFixed(1);
+            localStorage.setItem('joySens', sensitivity);
+        };
+
+        window.addEventListener('deviceorientation', (event) => {
+            if (isEditMode || !ws || ws.readyState !== WebSocket.OPEN) return;
+            let tilt = event.beta * sensitivity; 
+            if (tilt > 45) tilt = 45; if (tilt < -45) tilt = -45;
+            state.steering = tilt; sendData();
+        });
+
+        function sendData() { if (ws && ws.readyState === WebSocket.OPEN && !isEditMode) ws.send(JSON.stringify(state)); }
+
+        // --- 8. ระบบปุ่ม (UI, Drag & Drop, Modal) ---
+        const area = document.getElementById('gamepad-area');
+        
+        function renderButtons() {
+            area.innerHTML = '';
+            let currentButtons = profilesData[currentProfile];
+            
+            currentButtons.forEach(cfg => {
+                const btn = document.createElement('div');
+                btn.className = 'game-btn' + (isEditMode ? ' edit-mode' : '');
+                btn.id = 'btn-' + cfg.id;
+                
+                // โชว์ไอคอนลูกศรแทนตัวอักษรถ้าเป็น D-PAD
+                let displayTxt = cfg.action;
+                if(cfg.action === "UP") displayTxt = "🔼";
+                if(cfg.action === "DOWN") displayTxt = "🔽";
+                if(cfg.action === "LEFT") displayTxt = "◀️";
+                if(cfg.action === "RIGHT") displayTxt = "▶️";
+                btn.innerText = displayTxt;
+                
+                btn.style.width = cfg.size + 'px'; btn.style.height = cfg.size + 'px';
+                btn.style.backgroundColor = cfg.color; btn.style.left = cfg.x + 'px'; btn.style.top = cfg.y + 'px';
+                
+                btn.addEventListener('touchstart', (e) => handleTouchStart(e, cfg), {passive: false});
+                btn.addEventListener('touchmove', (e) => handleTouchMove(e, cfg), {passive: false});
+                btn.addEventListener('touchend', (e) => handleTouchEnd(e, cfg), {passive: false});
+                area.appendChild(btn);
+            });
+            saveProfiles();
+        }
+
+        function handleTouchStart(e, cfg) {
+            e.preventDefault();
+            if (isEditMode) { draggedBtn = cfg; } 
+            else { state.buttons[cfg.action] = 1; e.target.style.transform = 'scale(0.9)'; sendData(); }
+        }
+
+        function handleTouchMove(e, cfg) {
+            e.preventDefault();
+            if (isEditMode && draggedBtn === cfg) {
+                const touch = e.touches[0];
+                cfg.x = touch.clientX - (cfg.size / 2); cfg.y = touch.clientY - (cfg.size / 2);
+                document.getElementById('btn-' + cfg.id).style.left = cfg.x + 'px'; 
+                document.getElementById('btn-' + cfg.id).style.top = cfg.y + 'px';
+            }
+        }
+
+        function handleTouchEnd(e, cfg) {
+            e.preventDefault();
+            if (isEditMode) {
+                if (draggedBtn === cfg) { draggedBtn = null; renderButtons(); }
+                openModal(cfg.id);
+            } else { state.buttons[cfg.action] = 0; e.target.style.transform = 'scale(1)'; sendData(); }
+        }
+
+        const modal = document.getElementById('modal');
+        function openModal(id) {
+            if (!isEditMode) return;
+            currentEditBtnId = id; const cfg = profilesData[currentProfile].find(b => b.id === id);
+            document.getElementById('modal-action').value = cfg.action;
+            document.getElementById('modal-color').value = cfg.color;
+            document.getElementById('modal-size').value = cfg.size;
+            document.getElementById('size-val').innerText = cfg.size;
+            modal.style.display = 'block';
+        }
+        document.getElementById('modal-size').oninput = (e) => document.getElementById('size-val').innerText = e.target.value;
+        document.getElementById('modal-save').onclick = () => {
+            const cfg = profilesData[currentProfile].find(b => b.id === currentEditBtnId);
+            cfg.action = document.getElementById('modal-action').value;
+            cfg.color = document.getElementById('modal-color').value;
+            cfg.size = parseInt(document.getElementById('modal-size').value);
+            modal.style.display = 'none'; renderButtons();
+        };
+        document.getElementById('modal-del').onclick = () => {
+            profilesData[currentProfile] = profilesData[currentProfile].filter(b => b.id !== currentEditBtnId);
+            modal.style.display = 'none'; renderButtons();
+        };
+        document.getElementById('modal-close').onclick = () => modal.style.display = 'none';
+
+        document.getElementById('btn-edit').onclick = (e) => {
+            isEditMode = !isEditMode;
+            e.target.classList.toggle('active');
+            document.getElementById('btn-add').style.display = isEditMode ? 'block' : 'none';
+            document.querySelector('.sens-container').style.opacity = isEditMode ? '0.3' : '1';
+            document.getElementById('profile-selector').style.opacity = isEditMode ? '0.3' : '1';
+            renderButtons();
+        };
+
+        document.getElementById('btn-add').onclick = () => {
+            profilesData[currentProfile].push({ id: Date.now(), action: "A", color: "#9c88ff", size: 60, x: window.innerWidth / 2 - 30, y: window.innerHeight / 2 - 30 });
+            renderButtons();
+        };
+
+        // รันครั้งแรก
+        renderButtons();
+    </script>
+</body>
+</html>
